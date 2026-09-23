@@ -1,0 +1,2 @@
+
+ opencode -s ses_f3333ac5fffe8gycLcSA9rdpIy --auto

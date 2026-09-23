@@ -1,0 +1,1536 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  // output        = "../shared/prisma/clientFE" // ✅ output in shared folder
+  // binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+  // url      = "mongodb://localhost:27017/add"
+}
+
+// --------- Enums ----------
+enum ProductStatus {
+  draft
+  active
+  inactive
+  archived
+}
+
+enum BillingCycle {
+  daily
+  weekly
+  monthly
+  quarterly
+  yearly
+}
+
+// --------- Embedded types ----------
+type PriceTier {
+  minQty      Int
+  unitPrice   Float
+  customerTag String? // e.g., "B2B", "VIP"
+}
+
+type Dimensions {
+  length Float?
+  width  Float?
+  height Float?
+  unit   String? // e.g., "cm", "in"
+}
+
+type PackageInfo {
+  casePack     Int? // units per master carton
+  innerPack    Int? // units per inner box
+  packageNotes String?
+}
+
+type ProductVariantOption {
+  label   String
+  price   Float
+  stock   Int?
+  sku     String?
+  barcode String?
+  images  String[]
+}
+
+type ProductVariant {
+  variantType String // "size" | "color" | "flavor" | "material" | "custom"
+  name        String?
+  sizeSystem  String?
+  hexCode     String?
+  options     ProductVariantOption[]
+}
+
+type BundleComponent {
+  productId       String  @db.ObjectId // referenced Product id
+  quantity        Int
+  required        Boolean @default(true)
+  selectedOptions Json? // map of variant selections (if needed)
+}
+
+type DigitalAsset {
+  downloadUrls   String[]
+  fileSizeMB     Float?
+  licenseType    String? // "single-seat", "site", etc.
+  licenseTerms   String?
+  maxActivations Int?
+  drm            Boolean? @default(false)
+}
+
+type ServiceInfo {
+  durationMins  Int?
+  serviceType   String?
+  serviceArea   String? // e.g., "On-site", "Remote", "PAN India"
+  resourceHints String[] // e.g., tools/resources needed
+}
+
+type SubscriptionInfo {
+  billingCycle       BillingCycle
+  intervalCount      Int          @default(1) // e.g., every 1 month
+  trialDays          Int? // free trial length
+  autoRenew          Boolean      @default(true)
+  cancellationPolicy String?
+}
+
+type ChannelSku {
+  channel String // e.g., "amazon", "flipkart", "offline"
+  sku     String
+  price   Float?
+  live    Boolean @default(true)
+}
+
+// --------- Product (global catalog SKU) ----------
+model Product {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Identity & Catalog
+  slug           String?
+  name           String
+  subtitle       String?
+  description    String?
+  brand          String?
+  manufacturer   String?
+  manufacturerId String? @db.ObjectId
+
+  // Global identifiers
+  sku             String?
+  gtin            String? // generic GTIN
+  upc             String?
+  ean             String?
+  isbn            String?
+  hsCode          String? // customs / HSN
+  taxCode         String? // e.g., GST code
+  countryOfOrigin String?
+
+  // Categorization
+  categoryId   String?  @db.ObjectId
+  // category       Category? @relation(fields: [categoryId], references: [id])
+  categoryPath String[] // e.g., ["Food & Beverages", "Pizza"]
+  tags         String[]
+
+  // Pricing (catalog-level/MSRP)
+  price        Float? // base / MSRP
+  mrp          Float? // alt name for MSRP
+  cost         Float? // COGS (optional)
+  currency     String      @default("INR")
+  tax          Float       @default(0) // percent
+  taxInclusive Boolean     @default(true)
+  discount     Float       @default(0)
+  priceTiers   PriceTier[]
+
+  // Inventory/Tracking (catalog defaults; vendor overrides live in Inventory)
+  trackInventory  Boolean @default(true)
+  isBatchTracked  Boolean @default(false)
+  isSerialTracked Boolean @default(false)
+  allowBackorder  Boolean @default(false)
+  stock           Int     @default(0)
+  reorderPoint    Int     @default(0)
+  safetyStock     Int     @default(0)
+  leadTimeDays    Int?
+
+  // Logistics & Packaging (catalog-level)
+  weight        Float? // grams
+  dimensions    Dimensions?
+  packageInfo   PackageInfo?
+  shippingClass String? // e.g., "heavy", "fragile"
+  freightClass  String?
+
+  // Variants
+  variants ProductVariant[]
+
+  // Bundles/Kits
+  isBundle   Boolean           @default(false)
+  components BundleComponent[]
+
+  // Digital / Service / Subscription
+  isDigital      Boolean           @default(false)
+  digital        DigitalAsset?
+  isService      Boolean           @default(false)
+  service        ServiceInfo?
+  isSubscription Boolean           @default(false)
+  subscription   SubscriptionInfo?
+
+  // Media
+  images    String[]
+  videos    String[]
+  documents String[]
+
+  // SEO
+  searchTags      String[]
+  keywords        String[]
+  metaTitle       String?
+  metaDescription String?
+  metaImage       String?
+  metadata        Json? // Prisma uses Json for Mixed type
+
+  // Compliance & Food/Pharma options at catalog level
+  ageRestriction      Int?
+  warnings            String?
+  certifications      String[] // e.g., "ISI", "CE", "BIS"
+  allergens           String[] // if food
+  nutrition           Json? // facts as JSON
+  shelfLifeDays       Int?
+  storageInstructions String?
+  warrantyMonths      Int?
+  careInstructions    String?
+
+  // Sales channels
+  channelSkus ChannelSku[]
+
+  // Extensibility
+  attributes Json?
+
+  inventories Inventory[]
+
+  // Lifecycle
+  status         ProductStatus @default(active)
+  isDeleted      Boolean       @default(false)
+  approvalStatus String        @default("pending") // for catalog governance
+
+  // Audit
+  createdById  String? @db.ObjectId
+  updatedById  String? @db.ObjectId
+  approvedById String? @db.ObjectId
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // InventoryVendor InventoryVendor[]
+
+  @@index([name])
+  @@index([slug])
+  @@index([status])
+  @@index([approvalStatus])
+}
+
+// --------- Inventory (Admin listing) ---------
+// Add these two lines to your existing Inventory to link a vendor item to a Product.
+model Inventory {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Link to Product (global catalog)
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+
+  // For restaurants
+  preparationTime Int?
+  isVeg           Boolean?
+  isCombo         Boolean  @default(false)
+  comboItems      Json?
+
+  // For pharmacy
+  prescriptionRequired Boolean?
+  batchNumber          String?
+  expiryDate           DateTime?
+  saltComposition      String?
+
+  // For tailoring
+  isService   Boolean?
+  duration    Int?
+  serviceType String?
+
+  // SEO / Search Metadata
+  searchTags      String[]
+  keywords        String[]
+  metaDescription String?
+  metaImage       String?
+
+  // Logistics Info (vendor overrides)
+  weight     Float?
+  dimensions Json?
+  fragile    Boolean?
+
+  name        String
+  description String?
+  categoryId  String  @db.ObjectId
+  // category    Category @relation(fields: [categoryId], references: [id])
+
+  attributes        Json?
+  stock             Int      @default(0) // vendor stock
+  lowStockThreshold Int      @default(10)
+  price             Float // vendor sell price
+  discountPrice     Float    @default(0)
+  tax               Float    @default(0) // percent
+  sku               String   @unique
+  images            String[]
+  status            String   @default("active")
+
+  createdById String? @db.ObjectId
+  // createdBy       Vendor?  @relation(fields: [createdById], references: [id])
+
+  isDeleted      Boolean    @default(false)
+  approvalStatus String     @default("pending")
+  approvedById   String?    @db.ObjectId
+  // approvedBy     AreaManager? @relation(fields: [approvedById], references: [id])
+  customFields   Json?
+  cartId         String?    @db.ObjectId
+  // cartId         Cart    @relation(fields: [cartId], references: [id])
+  CartItem       CartItem[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  Category        Category          @relation(fields: [categoryId], references: [id])
+  // CartItem  CartItem[]
+  Cart            Cart?             @relation(fields: [cartId], references: [id])
+  OrderItem       OrderItem[]
+  InventoryVendor InventoryVendor[]
+
+  @@index([name])
+  @@index([status])
+  @@index([approvalStatus])
+}
+
+// --------- Inventory (vendor listing) ---------
+
+model InventoryVendor {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Link to Product (global catalog)
+  // productId String  @db.ObjectId
+  // product   Product @relation(fields: [productId], references: [id])
+
+  // For restaurants
+  preparationTime Int?
+  isVeg           Boolean?
+  isCombo         Boolean  @default(false)
+  comboItems      Json?
+
+  // For pharmacy
+  prescriptionRequired Boolean?
+  batchNumber          String?
+  expiryDate           DateTime?
+  saltComposition      String?
+
+  // For tailoring
+  isService   Boolean?
+  duration    Int?
+  serviceType String?
+
+  // SEO / Search Metadata
+  searchTags      String[]
+  keywords        String[]
+  metaDescription String?
+  metaImage       String?
+
+  // Logistics Info (vendor overrides)
+  weight     Float?
+  dimensions Json?
+  fragile    Boolean?
+
+  name        String
+  description String?
+  categoryId  String  @db.ObjectId
+  // category    Category @relation(fields: [categoryId], references: [id])
+
+  attributes        Json?
+  stock             Int?     @default(0) // vendor stock
+  lowStockThreshold Int?     @default(10)
+  price             Float? // vendor sell price
+  discountPrice     Float?   @default(0)
+  tax               Float?   @default(0) // percent
+  sku               String?  @unique
+  images            String[]
+  status            String   @default("active")
+
+  createdById String? @db.ObjectId
+  // createdBy       Vendor?  @relation(fields: [createdById], references: [id])
+
+  isDeleted      Boolean @default(false)
+  approvalStatus String  @default("pending")
+  approvedById   String? @db.ObjectId
+
+  inventoryId String?    @db.ObjectId
+  inventory   Inventory? @relation(fields: [inventoryId], references: [id])
+
+  vendorId     String?    @db.ObjectId
+  vendor       Vendor?    @relation(fields: [approvedById], references: [id])
+  customFields Json?
+  cartId       String?    @db.ObjectId
+  // cartId         Cart    @relation(fields: [cartId], references: [id])
+  CartItem     CartItem[]
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  // Category  Category?    @relation(fields: [categoryId], references: [id])
+  // CartItem  CartItem[]
+  Cart      Cart?       @relation(fields: [cartId], references: [id])
+  OrderItem OrderItem[]
+
+  @@index([name])
+  @@index([status])
+  @@index([approvalStatus])
+}
+
+// =========================================================
+
+model Category {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  description String
+  // moduleId    String?  @db.ObjectId
+  icon        String? // icon URL or path
+  isDeleted   Boolean  @default(false)
+  isPromoted  Boolean  @default(false)
+  createdBy   String?
+  updatedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  metadata Json? // Prisma uses Json for Mixed type
+
+  Inventory Inventory[]
+  // inventories Inventory[] // relation to Inventory model
+  moduleId  String      @db.ObjectId
+
+  Module  Module  @relation(fields: [moduleId], references: [id])
+  storeId String? @db.ObjectId
+  Store   Store?  @relation(fields: [storeId], references: [id])
+  // Store   Store?  @relation(fields: [storeId], references: [id])
+  // Store   Store?  @relation(fields: [storeId], references: [id])
+  // InventoryVendor InventoryVendor[]
+}
+
+model Module {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique
+  description String? // optional
+  businessId  String   @db.ObjectId
+  business    Business @relation(fields: [businessId], references: [id]) // Super Admin who created it
+
+  icon       String? // optional URL
+  isActive   Boolean @default(true)
+  isFeatured Boolean @default(true)
+  version    String  @default("1.0")
+  metadata   Json? // Prisma uses Json for Mixed type
+
+  // categoriesId String? // optional
+
+  createdBy String? // optional
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  // Inventory Inventory[]
+  Category  Category[]
+  // Store     Store?     @relation(fields: [storeId], references: [id])
+  // storeId   String?    @db.ObjectId
+  // store     Store?     @relation(fields: [storeId], references: [id]) // 👈 relation back
+
+  // Many-to-many with Lead
+  leads RequestedModule[] // ✅ reverse relation
+}
+
+model Business {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String       @unique
+  type        BusinessType @default(other)
+  description String?
+
+  ownerId String @db.ObjectId
+  // owner   Vendor @relation(fields: [ownerId], references: [id])
+
+  modules     Module[]
+  logo        String?
+  bannerImage String?
+  website     String?
+
+  // Embedded social links object
+  socialLinks Json? // Example: { "instagram": "...", "facebook": "...", "linkedin": "..." }
+
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  DeliveryPartner DeliveryPartner[]
+  Vendor          Vendor[]
+}
+
+enum BusinessType {
+  agriculture
+  mining
+  manufacturing
+  wholesale
+  retail
+  logistics
+  service
+  financial_services
+  transportation
+  utilities
+  entertainment
+  media
+  sports
+  real_estate
+  construction
+  technology
+  healthcare
+  education
+  hospitality
+  legal_services
+  consulting
+  non_profit
+  government
+  other
+}
+
+// Each user can have a Cart
+model Cart {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  // user      User     @relation(fields: [userId], references: [id])  // uncomment if User model exists
+
+  items CartItem[]
+
+  status          CartStatus        @default(active) // active | checkedOut | abandoned
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  Inventory       Inventory[]
+  InventoryVendor InventoryVendor[]
+}
+
+// Each entry in the cart represents one inventory variant (checkout item)
+model CartItem {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  cartId String @db.ObjectId
+  cart   Cart   @relation(fields: [cartId], references: [id])
+
+  inventoryId String    @db.ObjectId
+  inventory   Inventory @relation(fields: [inventoryId], references: [id])
+
+  quantity Int @default(1)
+
+  // Snapshot fields (to preserve info even if vendor updates inventory later)
+  name     String
+  price    Float // unit price at the time of adding
+  discount Float   @default(0)
+  image    String?
+  vendorId String? @db.ObjectId
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  InventoryVendor   InventoryVendor? @relation(fields: [inventoryVendorId], references: [id])
+  inventoryVendorId String?          @db.ObjectId
+}
+
+enum CartStatus {
+  active
+  checkedOut
+  abandoned
+}
+
+model Role {
+  id              String            @id @default(auto()) @map("_id") @db.ObjectId
+  name            String            @unique
+  permissions     String[] // list of assigned permissions
+  createdBy       String            @default("system")
+  isDeleted       Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  User            User[]
+  AreaManager     AreaManager[]
+  // User        User[]
+  DeliveryPartner DeliveryPartner[]
+  Vendor          Vendor[]
+}
+
+model User {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  mobile       String @unique
+  email        String @unique
+  passwordHash String
+
+  dob    DateTime?
+  gender Gender
+
+  addressId String? // instead of embedded type
+
+  bankAccountDetails BankAccountDetails[]
+  UPIid              String?
+
+  referralCode   String? @unique @db.String
+  agreementCheck Boolean
+
+  //   businessId      String?   @db.ObjectId
+  //   business        Business? @relation(fields: [businessId], references: [id])
+
+  roleId String @db.ObjectId
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  isVerified Boolean @default(false)
+  isActive   Boolean @default(true)
+  isDeleted  Boolean @default(false)
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  Order        Order[]
+  Subscription Subscription[]
+  AuditLog     AuditLog[]
+  // Lead         Lead[]
+  // Address      Address[]
+}
+
+// type UserAddress {
+//   street   String?
+//   locality String?
+//   city     String?
+//   state    String?
+//   pincode  String?
+//   geo      Geo?
+// }
+
+enum Gender {
+  male
+  female
+  other
+}
+
+model Address {
+  // id        String   @id @default(auto()) @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId   String? @db.ObjectId
+  vendorId String? @db.ObjectId
+  label    String? @default("Home")
+  street   String?
+  landmark String?
+  locality String?
+  area     String?
+  city     String?
+  state    String?
+  country  String?
+  zipCode  String?
+
+  geoLat Float?
+  geoLng Float?
+
+  contactName  String?
+  contactPhone String?
+  isDefault    Boolean @default(false)
+  Order        Order[]
+}
+
+model BankAccountDetails {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  accountHolderName String?
+  accountNumber     String?
+  bankName          String?
+  IFSC              String?
+  DeliveryPartner   DeliveryPartner[]
+  Vendor            Vendor[]
+}
+
+// --------- Order Models ----------
+model Order {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  orderId String @unique
+
+  // 📦 Buyer & Vendor
+  customerId String @db.ObjectId
+  customer   User   @relation(fields: [customerId], references: [id])
+  vendorId   String @db.ObjectId
+  vendor     Vendor @relation(fields: [vendorId], references: [id])
+
+  // 🛒 Items
+  items          OrderItem[]
+  addressId      String      @db.ObjectId
+  address        Address     @relation(fields: [addressId], references: [id])
+  totalQuantity  Int?
+  subtotalAmount Float?
+  taxes          Float?      @default(0)
+  discounts      Float?      @default(0)
+  deliveryCharge Float?      @default(0)
+  surcharge      Float?      @default(0)
+  grandTotal     Float?
+
+  // 🚚 Delivery Info
+  deliveryMode    DeliveryMode      @default(delivery)
+  deliveryAddress DeliveryAddress[]
+  deliveryStatus  DeliveryStatus[]
+
+  // 📊 Order Status
+  orderStatus   OrderStatus     @default(preparing)
+  statusHistory StatusHistory[]
+
+  // 💰 Payment Info
+  paymentMethod PaymentMethod @default(cod)
+  paymentStatus PaymentStatus @default(pending)
+  transactionId String?
+
+  razorpay_order_id   String?
+  razorpay_payment_id String?
+  razorpay_signature  String?
+
+  // 🔁 Flags & Logic
+  isScheduled        Boolean   @default(false)
+  scheduledFor       DateTime?
+  isCancelled        Boolean   @default(false)
+  cancellationReason String?
+
+  // 🧠 Feedback
+  feedback Feedback[]
+
+  // ⏱️ Timestamps
+  createdAt   DateTime  @default(now())
+  confirmedAt DateTime?
+  pickedAt    DateTime?
+  deliveredAt DateTime?
+  cancelledAt DateTime?
+
+  // 🔐 Meta
+  source             Source @default(app)
+  platformFee        Float?
+  deliveryPartnerFee Float?
+  extraMeta          Json?
+}
+
+model OrderItem {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  orderId           String           @db.ObjectId
+  order             Order            @relation(fields: [orderId], references: [id])
+  // productId         String           @db.ObjectId
+  // product           Inventory        @relation(fields: [productId], references: [id])
+  name              String?
+  variant           String?
+  quantity          Int
+  image             String?
+  price             Float
+  subtotal          Float
+  InventoryVendor   InventoryVendor? @relation(fields: [inventoryVendorId], references: [id])
+  inventoryVendorId String?          @db.ObjectId
+  Inventory         Inventory?       @relation(fields: [inventoryId], references: [id])
+  inventoryId       String?          @db.ObjectId
+}
+
+model DeliveryAddress {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  orderId     String  @db.ObjectId
+  order       Order   @relation(fields: [orderId], references: [id])
+  name        String?
+  phone       String?
+  addressLine String?
+  locality    String?
+  city        String?
+  state       String?
+  pincode     String?
+  lat         Float?
+  lng         Float?
+}
+
+model DeliveryStatus {
+  id            String             @id @default(auto()) @map("_id") @db.ObjectId
+  orderId       String             @db.ObjectId
+  order         Order              @relation(fields: [orderId], references: [id])
+  assignedToId  String?            @db.ObjectId
+  assignedTo    DeliveryPartner?   @relation(fields: [assignedToId], references: [id])
+  status        DeliveryStatusEnum @default(assigned)
+  currentLat    Float?
+  currentLng    Float?
+  estimatedTime String?
+}
+
+model StatusHistory {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  orderId       String        @db.ObjectId
+  order         Order         @relation(fields: [orderId], references: [id])
+  status        String
+  timestamp     DateTime
+  remarks       String?
+  updatedById   String?       @db.ObjectId
+  updatedByRole UpdatedByRole
+}
+
+model Feedback {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  orderId    String    @db.ObjectId
+  order      Order     @relation(fields: [orderId], references: [id])
+  rating     Int?
+  comment    String?
+  reviewedAt DateTime?
+}
+
+// ================= ORDER ENUMS =================
+enum DeliveryMode {
+  delivery
+  pickup
+}
+
+enum DeliveryStatusEnum {
+  assigned
+
+  accepted
+
+  arrived_at_pickup
+  picked_up
+
+  delivered
+
+  cancelled
+}
+
+enum OrderStatus {
+  created
+  confirmed
+  preparing
+  ready
+  assigned
+  arrived_at_pickup
+  out_for_delivery
+  delivered
+  cancelled
+}
+
+enum PaymentMethod {
+  cod
+  upi
+  card
+  wallet
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum Source {
+  web
+  app
+  pwa
+}
+
+enum UpdatedByRole {
+  User
+  Vendor
+  DeliveryAgent
+  System
+}
+
+//============================= model delivery partner=====================
+model DeliveryPartner {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  mobile   String @unique
+  email    String @unique
+  password String
+
+  dob    DateTime?
+  gender Gender?
+
+  // Relations
+  address     DpAddress?
+  bankDetails BankAccountDetails? @relation(fields: [bankAccountDetailsId], references: [id])
+  businessId  String?             @db.ObjectId
+  business    Business?           @relation(fields: [businessId], references: [id])
+  roleId      String              @db.ObjectId
+  role        Role                @relation(fields: [roleId], references: [id])
+
+  fcmToken     String?
+  UPIid        String?
+  referralCode String? @unique
+
+  agreementCheck Boolean
+  vehicleType    String?
+
+  isVerified Boolean @default(false)
+  isActive   Boolean @default(true)
+  isDeleted  Boolean @default(false)
+
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  DeliveryStatus       DeliveryStatus[]
+  bankAccountDetailsId String?          @db.ObjectId
+}
+
+type DpAddress {
+  street   String?
+  locality String?
+  city     String?
+  state    String?
+  pincode  String?
+  geo      Geo?
+}
+
+type DpGeo {
+  lat Float?
+  lng Float?
+}
+
+// ===================================== Venodr model ============================================
+model Vendor {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  mobile   String
+  email    String
+  password String?
+
+  dob    DateTime?
+  gender Gender    @default(other)
+
+  // Address
+  addressStreet  String?
+  addressCity    String?
+  addressState   String?
+  addressCountry String?
+  addressZipCode String?
+  addressLat     Float?
+  addressLng     Float?
+
+  // Bank Account
+  bankAccount BankAccountDetails? @relation(fields: [bankAccountDetailsId], references: [id])
+  orders      Order[]
+  UPIid       String?
+
+  vendorType       VendorType
+  onboardingStatus OnboardingStatus @default(profile_created)
+
+  areaManagerId String?      @db.ObjectId
+  areaManager   AreaManager? @relation(fields: [areaManagerId], references: [id])
+
+  referralCode   String?
+  agreementCheck Boolean
+
+  // Business Information
+  businessName String?
+  businessCategory String[]
+  businessType   String?
+  businessOperatingDays String[]
+  businessOpeningTime String?
+  businessClosingTime String?
+  deliverySupported Boolean @default(true)
+  avgPreparationTime String?
+
+  // Compliance & Documents
+  govIdType     String?
+  govIdNumber   String?
+  gstNumber     String?
+  fssaiLicense  String?
+  drugLicense   String?
+
+  // Settlement
+  settlementCycle String?
+
+  businessId String?   @db.ObjectId
+  business   Business? @relation(fields: [businessId], references: [id])
+
+  roleId String @db.ObjectId
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  isVerified Boolean @default(false)
+  isActive   Boolean @default(true)
+  isDeleted  Boolean @default(false)
+
+  documents   VendorDocument[]
+  locationLat Float?
+  locationLng Float?
+
+  lastLoginAt DateTime?
+  deviceInfo  DeviceInfo? @relation(fields: [deviceInfoId], references: [id])
+
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  bankAccountDetailsId String?           @db.ObjectId
+  deviceInfoId         String?           @db.ObjectId
+  Store                Store[]
+  InventoryVendor      InventoryVendor[]
+}
+
+model VendorDocument {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  vendorId String @db.ObjectId
+  vendor   Vendor @relation(fields: [vendorId], references: [id])
+
+  type     String
+  fileUrl  String
+  verified Boolean @default(false)
+}
+
+model DeviceInfo {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  vendorId   String   @db.ObjectId
+  vendor     Vendor[]
+  os         String?
+  appVersion String?
+  fcmToken   String?
+}
+
+// ================= ENUMS =================
+
+enum VendorType {
+  retailer_product
+  retailer_service
+}
+
+enum OnboardingStatus {
+  profile_created
+  inventory_pending
+  under_review
+  approved
+  rejected
+}
+
+// ======================================= area manager model =================================
+model AreaManager {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  fullName        String
+  phoneNumber     String   @unique
+  email           String   @unique
+  roleId          String?  @db.ObjectId
+  role            Role?    @relation(fields: [roleId], references: [id])
+  password        String
+  assignedRegions String[] // array of strings
+
+  employeeCode String? @unique
+  isActive     Boolean @default(true)
+
+  // documents
+  idProofUrl      String @default("")
+  addressProofUrl String @default("")
+
+  // ✅ GeoJSON Polygon (using Json for flexibility)
+  location Json
+
+  createdAt    DateTime  @default(now())
+  verified     Boolean   @default(false)
+  verifiedAt   DateTime?
+  verifiedById String?   @db.ObjectId
+  // verifiedBy   Admin?    @relation(fields: [verifiedById], references: [id])
+
+  updatedAt DateTime @updatedAt
+  Vendor    Vendor[]
+  // Admin     Admin?   @relation(fields: [adminId], references: [id])
+  adminId   String?  @db.ObjectId
+}
+
+model Admin {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  mobile   String @unique
+  email    String @unique
+  password String
+  // verifiedAreaManagers AreaManager[] @relation("AdminToAreaManager")
+  // AreaManager AreaManager[]
+}
+
+model Trip {
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  tripId        String  @unique
+  customer      String? @map("customer") @db.ObjectId // references User
+  deliveryAgent String? @map("deliveryAgent") @db.ObjectId // references deliveryPartner
+  order         String? @map("order") @db.ObjectId // references Order
+
+  status TripStatus @default(created)
+
+  pickupLocation   PickupLocation?
+  deliveryLocation DeliveryLocation?
+
+  currentLocation CurrentLocation?
+
+  routePath RoutePath[]
+
+  assignedAt        DateTime?
+  acceptedAt        DateTime?
+  pickupStartedAt   DateTime?
+  pickedUpAt        DateTime?
+  deliveryStartedAt DateTime?
+  deliveredAt       DateTime?
+  cancelledAt       DateTime?
+
+  estimatedDistanceKm  Float?
+  actualDistanceKm     Float?
+  estimatedDurationMin Float?
+  actualDurationMin    Float?
+
+  fare Fare?
+
+  meta Meta?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TripStatus {
+  created
+  assigned
+  accepted
+  en_route_to_pickup
+  arrived_at_pickup
+  picked_up
+  en_route_to_delivery
+  delivered
+  cancelled
+}
+
+type PickupLocation {
+  lat     Float?
+  lng     Float?
+  address String?
+}
+
+type DeliveryLocation {
+  lat     Float?
+  lng     Float?
+  address String?
+}
+
+type CurrentLocation {
+  lat       Float?
+  lng       Float?
+  updatedAt DateTime?
+}
+
+type RoutePath {
+  lat       Float?
+  lng       Float?
+  timestamp DateTime?
+}
+
+type Fare {
+  baseFare             Float?
+  distanceFare         Float?
+  timeFare             Float?
+  nightSurcharge       Float?
+  platformFee          Float?
+  deliveryPartnerShare Float?
+  totalPayable         Float?
+}
+
+type Meta {
+  cancelledBy CancelledBy @default(nullVal)
+  reason      String?
+  notes       String?
+}
+
+enum CancelledBy {
+  vendor
+  customer
+  delivery_agent
+  system
+  nullVal
+}
+
+model Transaction {
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  type         TransactionType
+  amount       Float
+  balanceAfter Float
+  balanceHold  Float?
+  sourceType   SourceType
+  sourceRef    String?         @db.ObjectId
+  description  String?
+  performedBy  String?         @db.ObjectId
+  walletId     String          @db.ObjectId
+  wallet       Wallet          @relation(fields: [walletId], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Wallet {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String        @unique @db.ObjectId
+  userModel    UserRole
+  balance      Float         @default(0)
+  lockedAmount Float         @default(0)
+  updatedAt    DateTime      @default(now())
+  createdAt    DateTime      @default(now())
+  Transaction  Transaction[]
+
+  @@map("wallets")
+}
+
+enum UserRole {
+  customer
+  vendor
+  deliveryAgent
+  areaManager
+}
+
+enum TransactionType {
+  credit
+  debit
+}
+
+enum SourceType {
+  order
+  refund
+  bonus
+  withdrawal
+  adjustment
+  payout
+}
+
+model Store {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  vendorId String @unique @db.ObjectId
+  vendor   Vendor @relation(fields: [vendorId], references: [id])
+
+  name String
+
+  // Store images (JSON object in Mongo)
+  storeImage StoreImage?
+
+  // Relations
+  // modules            Module[]   @relation("StoreModules")
+  // promotedCategories Category[] @relation("StorePromotedCategories")
+
+  // Address as embedded type
+  address StoreAddress?
+
+  mobile String
+
+  operating_hours OperatingHours?
+  status          StoreStatus?
+  bank_details    BankDetails?
+  kyc             Kyc?
+
+  profile_completion Int @default(0)
+  inventory_count    Int @default(0)
+  order_count        Int @default(0)
+
+  ratings Ratings?
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  Category  Category[]
+  modules   RequestedModule[] // 👈 add this
+}
+
+//////////////////// Nested Embedded Types ////////////////////
+
+type StoreImage {
+  topImg    String?
+  middleImg String?
+  bottomImg    String?
+  profileImg    String?
+}
+
+type StoreAddress {
+  street   String?
+  locality String?
+  city     String?
+  state    String?
+  pincode  String?
+  geo      Geo?
+}
+
+type Geo {
+  lat Float?
+  lng Float?
+}
+
+type OperatingHours {
+  open  String? @default("09:00") // HH:mm
+  close String? @default("21:00")
+}
+
+type StoreStatus {
+  isOpen      Boolean? @default(true)
+  lastUpdated DateTime @default(now())
+}
+
+type BankDetails {
+  account_holder String?
+  account_number String?
+  ifsc           String?
+  upi_id         String?
+}
+
+type Kyc {
+  gst_number String?
+  documents  String[] // Array of URLs
+  verified   Boolean? @default(false)
+}
+
+type Ratings {
+  average       Float? @default(0)
+  total_reviews Int?   @default(0)
+}
+
+enum SubscriptionStatus {
+  active
+  cancelled
+  expired
+}
+
+model Subscription {
+  id        String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String             @db.ObjectId
+  planId    String             @db.ObjectId
+  status    SubscriptionStatus @default(active)
+  startedAt DateTime           @default(now())
+  expiresAt DateTime?
+
+  // relations
+  user User             @relation(fields: [userId], references: [id])
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+}
+
+model SubscriptionPlan {
+  id           String @id @default(auto()) @map("_id") @db.ObjectId
+  name         String @unique
+  price        Float
+  durationDays Int
+
+  // relations
+  subscriptions Subscription[]
+}
+
+model AuditLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String?  @db.ObjectId
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // relation to User (optional, since user can be null)
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("auditlogs")
+}
+
+model Lead {
+  id             String            @id @default(auto()) @map("_id") @db.ObjectId
+  leadType       LeadType
+  name           String
+  email          String
+  phone          String
+  companyName    String? // only required if leadType = vendor (Prisma can't enforce conditional required, so nullable here)
+  address        String?
+  drivingLicense String?
+  aadharNumber   String?
+  panNumber      String?
+  region         Region?
+  source         LeadSource
+  status         LeadStatus        @default(new)
+  assignedToId   String?           @db.ObjectId
+  comments       String?
+  details        LeadDetails?
+  // documents      LeadDocument[]
+  modules        RequestedModule[] // ✅ references join collection
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  // relation
+  // assignedTo User? @relation(fields: [assignedToId], references: [id])
+  // Module     Module[]
+  // Module     Module[]
+
+  // @@map("leads")
+}
+
+model RequestedModule {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  requester String? @db.ObjectId
+  storeId   String? @db.ObjectId
+  moduleId  String  @db.ObjectId
+
+  // relations
+  lead   Lead?  @relation(fields: [requester], references: [id])
+  store  Store? @relation(fields: [storeId], references: [id])
+  module Module @relation(fields: [moduleId], references: [id])
+}
+
+// model LeadDocument {
+//     id     String @id @default(auto()) @map("_id") @db.ObjectId
+//     name   String
+//     link   String
+//     leadId String @db.ObjectId
+
+//     lead Lead @relation(fields: [leadId], references: [id])
+
+//     @@map("lead_documents")
+// }
+
+type LeadDetails {
+  businessType  BusinessType?
+  bankAccount   String?
+  taxId         String?
+  vehicleType   String?
+  licenseNumber String?
+  capacity      String?
+}
+
+/// ENUMS
+
+enum LeadType {
+  vendor
+  delivery_agent
+  partner
+  client
+  customer
+}
+
+enum Region {
+  north
+  south
+  east
+  west
+}
+
+enum LeadSource {
+  web
+  facebook
+  google
+  organic
+  referral
+  ads
+  other
+}
+
+enum LeadStatus {
+  new
+  contacted
+  qualified
+  approved
+  rejected
+  onboarding
+}
+
+model Discovery {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Display
+  title       String // e.g., "Quick Meals"
+  subtitle    String? // e.g., "Ready-to-eat noodles, pasta, soup mixes"
+  image       String? // banner/card image
+  displayType String // "grid" | "carousel" | "list" | "hero"
+
+  // Linking
+  moduleId String?
+  type     String // "category" | "product" | "inventory" | "mixed"
+  refIds   String[] @db.ObjectId // manual IDs (if curated)
+
+  // Dynamic Filters
+  filters Json? // JSON rules, e.g.
+  /**
+   * {
+   * "price": { "lte": 100 },
+   * "isFeatured": true,
+   * "tags": ["healthy", "trending"],
+   * "location": "Lucknow",
+   * "sortBy": "popularity"
+   * }
+   */
+
+  // Visual Settings
+  theme       String? // "light" | "dark" | "custom"
+  bgColor     String? // e.g., "#FFFFFF" or Tailwind token like "bg-gray-100"
+  textColor   String? // e.g., "#000000" or "text-gray-800"
+  accentColor String? // e.g., "#FF5733" for highlights
+  layoutStyle String? // "card" | "banner" | "minimal" | "glassmorphism"
+  customCss   String? // optional custom Tailwind classes
+
+  // Control
+  isActive   Boolean @default(true)
+  isFeatured Boolean @default(false)
+  priority   Int? // ordering for homepage
+
+  createdBy String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  items     DiscoveryItem[]
+}
+
+model DiscoveryItem {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  // Relation
+  discoveryId String    @db.ObjectId
+  discovery   Discovery @relation(fields: [discoveryId], references: [id], onDelete: Cascade)
+
+  // Display
+  title    String // e.g. "Instant Noodles"
+  subtitle String? // optional
+  image    String? // tile image / icon
+  badge    String? // "NEW", "HOT", "10 MIN", etc
+
+  theme       String? // "light" | "dark" | "custom"
+  bgColor     String? // e.g., "#FFFFFF" or Tailwind token like "bg-gray-100"
+  textColor   String? // e.g., "#000000" or "text-gray-800"
+  accentColor String? // e.g., "#FF5733" for highlights
+  layoutStyle String? // "card" | "banner" | "minimal" | "glassmorphism"
+  customCss   String? // optional custom Tailwind classes
+
+  // Navigation / Action
+  targetType  String // "category" | "product" | "inventory" | "search" | "collection"
+  targetIds   String[] @db.ObjectId // array of categoryIds / productIds / inventoryIds
+  targetSlug  String? // for SEO / routing
+  targetQuery Json? // for dynamic navigation
+  /**
+   * {
+   * "category": "snacks",
+   * "price": { "lte": 100 },
+   * "tags": ["quick"]
+   * }
+   */
+
+  // UI Behavior
+  openMode String? // "push" | "modal" | "bottomSheet"
+  deepLink String? // for app routing (future)
+
+  // Ordering & State
+  priority Int?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DeliveryRule {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  minDistance   Int
+  maxDistance   Int
+  baseCharge    Int
+  expressCharge Int
+  freeAbove     Int // min order value for free delivery
+}
+
+model PlatformConfig {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  ratePerKm      Int // default ₹10/km
+  platformMargin Float // e.g. 0.1 = 10%
+  vendorMargin   Float // e.g. 0.1 = 10%
+}
+
+model Notification {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  title         String?
+  message       String?
+  type          String?
+  recipientId   String?
+  recipientRole String?
+  relatedId     String? // e.g. orderId, vendorId, etc.
+  isRead        Boolean?  @default(false)
+  createdAt     DateTime? @default(now())
+  readAt        DateTime?
+  metadata      Json?
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "675945099743",
+    "project_id": "apnidesidukaan-995a8",
+    "storage_bucket": "apnidesidukaan-995a8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:675945099743:android:e60a27925d31793c6f946a",
+        "android_client_info": {
+          "package_name": "com.apniride"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBP5MN4XAa4Q7tOtiXjFAns1W-4o8SheHQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
