@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingHorizontal: 20,
         borderTopWidth: 1,
-        borderTopColor: '#e0e0e0',
+        borderTopColor: '#e9d8bf',
         elevation: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -3 },
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
 
     navLabel: {
         fontSize: 12,
-        color: '#7f8c8d',
+        color: '#7d6b5d',
         fontWeight: '500',
     },
 });

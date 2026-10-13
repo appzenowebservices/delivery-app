@@ -18,12 +18,12 @@ import {
 } from "../../api/trips";
 
 const COLORS = {
-  dark: '#0F172A',
-  muted: '#64748B',
-  accent: '#10B981', // Emerald
-  action: '#3B82F6', // Blue
-  warning: '#F59E0B', // Amber
-  bg: '#F8FAFC',
+  dark: '#2d241e',
+  muted: '#7d6b5d',
+  accent: '#0c831f', // Emerald
+  action: '#2196f3', // Blue
+  warning: '#e9c46a', // Amber
+  bg: '#fdfbf7',
 };
 
 // 500 meters for "Arrived" state
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     padding: 16, 
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0'
+    borderColor: '#e9d8bf'
   },
   statusMsg: {
     fontSize: 10,

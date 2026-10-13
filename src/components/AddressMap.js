@@ -43,7 +43,7 @@ const AddressMap = ({ latitude, longitude }) => {
             // Circle radius 100m
             L.circle([${lat}, ${lng}], {
                 color: 'blue',
-                fillColor: '#007bff33',
+                fillColor: '#2196f333',
                 fillOpacity: 0.4,
                 radius: 100
             }).addTo(map);
@@ -78,7 +78,7 @@ const AddressMap = ({ latitude, longitude }) => {
     <View style={styles.mapContainer}>
       {!mapLoaded && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#007bff" />
+          <ActivityIndicator size="large" color="#2196f3" />
           <Text>Loading Map...</Text>
         </View>
       )}
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: "hidden",
     marginVertical: 10,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "#e9d8bf",
   },
   loadingContainer: {
     height: 200,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 10,
     borderRadius: 10,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#f5ebe0",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

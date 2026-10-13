@@ -132,7 +132,7 @@ const ProductDetailScreen = () => {
             key={index}
             style={[
               styles.indicator,
-              { backgroundColor: activeImageIndex === index ? '#00B761' : '#E5E5E5' },
+              { backgroundColor: activeImageIndex === index ? '#0c831f' : '#e9d8bf' },
             ]}
           />
         ))}
@@ -155,7 +155,7 @@ const ProductDetailScreen = () => {
       <View style={styles.brandContainer}>
         <Text style={styles.brandText}>{product.brand}</Text>
         <View style={styles.ratingContainer}>
-          <Ionicons name="star" size={14} color="#FFD700" />
+          <Ionicons name="star" size={14} color="#e9c46a" />
           <Text style={styles.ratingText}>{product.rating}</Text>
           <Text style={styles.reviewsText}>({product.reviews})</Text>
         </View>
@@ -179,7 +179,7 @@ const ProductDetailScreen = () => {
         onPress={() => setShowDetails(true)}
       >
         <Text style={styles.detailsButtonText}>View Details & Nutrition Info</Text>
-        <Ionicons name="chevron-forward" size={16} color="#00B761" />
+        <Ionicons name="chevron-forward" size={16} color="#0c831f" />
       </TouchableOpacity>
     </View>
   );
@@ -193,7 +193,7 @@ const ProductDetailScreen = () => {
             key={variant.id}
             style={[
               styles.variantCard,
-              { borderColor: selectedVariant === index ? '#00B761' : '#E5E5E5' },
+              { borderColor: selectedVariant === index ? '#0c831f' : '#e9d8bf' },
             ]}
             onPress={() => setSelectedVariant(index)}
           >
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   discountBadge: {
-    backgroundColor: '#00B761',
+    backgroundColor: '#0c831f',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -467,18 +467,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: '#f5ebe0',
   },
   detailsButtonText: {
     flex: 1,
     fontSize: 14,
-    color: '#00B761',
+    color: '#0c831f',
     fontWeight: '600',
   },
   variantsContainer: {
     padding: 16,
     borderTopWidth: 8,
-    borderTopColor: '#f8f8f8',
+    borderTopColor: '#fdfbf7',
   },
   sectionTitle: {
     fontSize: 16,
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: '#e9d8bf',
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
   },
   deliveryText: {
     fontSize: 12,
-    color: '#00B761',
+    color: '#0c831f',
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#00B761',
+    borderColor: '#0c831f',
     borderRadius: 8,
   },
   quantityButton: {
@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   },
   addToCartButton: {
     flex: 1,
-    backgroundColor: '#00B761',
+    backgroundColor: '#0c831f',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#e9d8bf',
   },
   modalTitle: {
     fontSize: 18,
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: '#f5ebe0',
   },
   nutritionLabel: {
     fontSize: 14,
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
   },
   variantDiscount: {
     fontSize: 13,
-    color: '#00B761',
+    color: '#0c831f',
     fontWeight: 'bold',
     marginLeft: 6,
   },
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
   blinkitCounter: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#00B761',
+    backgroundColor: '#0c831f',
     borderRadius: 8,
     paddingHorizontal: 4,
     paddingVertical: 2,
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   },
   blinkitCartButton: {
     flex: 1,
-    backgroundColor: '#00B761',
+    backgroundColor: '#0c831f',
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',

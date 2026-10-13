@@ -12,11 +12,11 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 // Industrial Design System
 const COLORS = {
     bg: '#FFFFFF',
-    dark: '#0F172A',     // Slate 900
-    muted: '#64748B',    // Slate 500
-    accent: '#10B981',   // Operational Green
-    warning: '#F59E0B',  // Warning Amber
-    border: '#F1F5F9',   // Gray 100
+    dark: '#2d241e',     // Slate 900
+    muted: '#7d6b5d',    // Slate 500
+    accent: '#0c831f',   // Operational Green
+    warning: '#e9c46a',  // Warning Amber
+    border: '#f5ebe0',   // Gray 100
 };
 
 export const Header = ({ profile, patchProfile, socket, riderId }) => {
@@ -83,9 +83,9 @@ export const Header = ({ profile, patchProfile, socket, riderId }) => {
                 <Switch
                     value={isOnline}
                     onValueChange={toggleOnlineStatus}
-                    trackColor={{ false: '#CBD5E1', true: '#D1FAE5' }}
-                    thumbColor={isOnline ? COLORS.accent : '#94A3B8'}
-                    ios_backgroundColor="#CBD5E1"
+                    trackColor={{ false: '#d2b48c', true: '#d3ebd8' }}
+                    thumbColor={isOnline ? COLORS.accent : '#a68b66'}
+                    ios_backgroundColor="#d2b48c"
                 />
             </View>
             
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
         width: 52,
         height: 52,
         borderRadius: 16,
-        backgroundColor: '#F1F5F9',
+        backgroundColor: '#f5ebe0',
     },
     statusDot: {
         position: 'absolute',
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
         borderColor: COLORS.bg,
     },
     onlineDot: { backgroundColor: COLORS.accent },
-    offlineDot: { backgroundColor: '#94A3B8' },
+    offlineDot: { backgroundColor: '#a68b66' },
     identity: {
         gap: 2,
     },
@@ -173,17 +173,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: '#FFFBEB',
+        backgroundColor: '#fdf6e4',
         paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#FEF3C7',
+        borderColor: '#faedcc',
     },
     ratingText: {
         fontSize: 12,
         fontWeight: '900',
-        color: '#B45309',
+        color: '#8a6420',
     },
     dutyToggle: {
         flexDirection: 'row',
@@ -194,12 +194,12 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     dutyActive: {
-        backgroundColor: '#F0FDF4',
-        borderColor: '#DCFCE7',
+        backgroundColor: '#eaf6ed',
+        borderColor: '#d3ebd8',
     },
     dutyInactive: {
-        backgroundColor: '#F8FAFC',
-        borderColor: '#F1F5F9',
+        backgroundColor: '#fdfbf7',
+        borderColor: '#f5ebe0',
     },
     dutyLeft: { gap: 4 },
     labelContainer: {
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
         borderRadius: 3,
     },
     bgOnline: { backgroundColor: COLORS.accent },
-    bgOffline: { backgroundColor: '#94A3B8' },
+    bgOffline: { backgroundColor: '#a68b66' },
     ping: {
         position: 'absolute',
         width: 12,

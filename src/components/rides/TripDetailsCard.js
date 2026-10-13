@@ -5,13 +5,13 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FareBreakdown from './FareBreakdown';
 
 const COLORS = {
-    dark: '#0F172A',      // Slate 900
-    muted: '#64748B',     // Slate 500
-    accent: '#10B981',    // Emerald 500
-    warning: '#F59E0B',   // Amber 500
+    dark: '#2d241e',      // Slate 900
+    muted: '#7d6b5d',     // Slate 500
+    accent: '#0c831f',    // Emerald 500
+    warning: '#e9c46a',   // Amber 500
     bg: '#FFFFFF',
-    surface: '#F8FAFC',   // Gray 50
-    border: '#E2E8F0',    // Gray 200
+    surface: '#fdfbf7',   // Gray 50
+    border: '#e9d8bf',    // Gray 200
 };
 
 const TripDetailsCard = ({ trip, children }) => {

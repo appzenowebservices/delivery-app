@@ -137,9 +137,9 @@ const LocationLocator = () => {
       >
         <View style={styles.locationIcon}>
           {location.isLoading ? (
-            <ActivityIndicator size="small" color="#f97316" />
+            <ActivityIndicator size="small" color="#c84f3d" />
           ) : (
-            <Ionicons name="location" size={16} color="#f97316" />
+            <Ionicons name="location" size={16} color="#c84f3d" />
           )}
         </View>
         <View style={styles.locationText}>
@@ -180,7 +180,7 @@ const LocationLocator = () => {
             onPress={detectLocation}
             activeOpacity={0.8}
           >
-            <Ionicons name="navigate" size={16} color="#f97316" />
+            <Ionicons name="navigate" size={16} color="#c84f3d" />
             <Text
               style={styles.enableLocationText}
               numberOfLines={1}
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16, // Makes it a circle
-    backgroundColor: '#fff7ed', // Light orange background
+    backgroundColor: '#faedcc', // Light orange background
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -245,16 +245,16 @@ const styles = StyleSheet.create({
   enableLocationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff7ed',
+    backgroundColor: '#faedcc',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#fed7aa',
+    borderColor: '#faedcc',
   },
   enableLocationText: {
     fontSize: 12,
-    color: '#f97316',
+    color: '#c84f3d',
     fontWeight: '500',
     marginLeft: 6,
     flex: 1,
@@ -273,12 +273,12 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3, // Makes it a circle
-    backgroundColor: '#22c55e', // Green dot
+    backgroundColor: '#0c831f', // Green dot
     marginRight: 6,
   },
   deliveryTime: {
     fontSize: 12,
-    color: '#22c55e', // Green text
+    color: '#0c831f', // Green text
     fontWeight: '500',
   },
 });

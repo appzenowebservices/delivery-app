@@ -13,12 +13,12 @@ import { getRideHistory } from '../../api/transactions';
 import moment from 'moment';
 
 const COLORS = {
-  dark: '#0F172A',      // Slate 900
-  muted: '#64748B',     // Slate 500
-  accent: '#10B981',    // Emerald 500
-  bg: '#F8FAFC',        // Slate 50
+  dark: '#2d241e',      // Slate 900
+  muted: '#7d6b5d',     // Slate 500
+  accent: '#0c831f',    // Emerald 500
+  bg: '#fdfbf7',        // Slate 50
   surface: '#FFFFFF',
-  border: '#E2E8F0',
+  border: '#e9d8bf',
 };
 
 const TripHistory = () => {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   bgSuccess: { backgroundColor: COLORS.accent + '15' },
-  bgWarning: { backgroundColor: '#FDE68A' }, // Light Amber
+  bgWarning: { backgroundColor: '#faedcc' }, // Light Amber
   statusText: { fontSize: 9, fontWeight: '900' },
   
   detailsButton: { flexDirection: 'row', alignItems: 'center', gap: 4 },

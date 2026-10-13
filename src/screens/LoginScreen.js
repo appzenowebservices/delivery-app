@@ -9,7 +9,8 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    Dimensions
+    Dimensions,
+    Image
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -19,12 +20,12 @@ import ToastAlert from "../components/ToastAlert";
 const { width } = Dimensions.get('window');
 
 const COLORS = {
-    dark: '#0F172A',      // Slate 900
-    muted: '#64748B',     // Slate 500
-    accent: '#10B981',    // Emerald 500
-    bg: '#F8FAFC',        // Slate 50
+    dark: '#2d241e',      // Slate 900
+    muted: '#7d6b5d',     // Slate 500
+    accent: '#0c831f',    // Emerald 500
+    bg: '#fdfbf7',        // Slate 50
     surface: '#FFFFFF',
-    border: '#E2E8F0',
+    border: '#e9d8bf',
 };
 
 export default function CaptainLoginScreen({ navigation }) {
@@ -64,9 +65,11 @@ export default function CaptainLoginScreen({ navigation }) {
             <View style={styles.topSection}>
                 <View style={styles.gridOverlay} />
                 <View style={styles.brandBox}>
-                    <View style={styles.logoCircle}>
-                        <Icon name="shield-key" size={32} color={COLORS.accent} />
-                    </View>
+                    <Image
+                        source={require("../assets/doot.png")}
+                        style={styles.brandLogo}
+                        resizeMode="contain"
+                    />
                     <Text style={styles.brandName}>CORE_STATION</Text>
                     <View style={styles.statusIndicator}>
                         <View style={styles.pulseDot} />
@@ -148,7 +151,7 @@ export default function CaptainLoginScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: COLORS.bg },
     topSection: {
-        height: '35%',
+        height: '42%',
         backgroundColor: COLORS.dark,
         justifyContent: 'center',
         alignItems: 'center',
@@ -166,16 +169,10 @@ const styles = StyleSheet.create({
         // In a real app, you'd use a pattern image or repeating lines here
     },
     brandBox: { alignItems: 'center' },
-    logoCircle: {
-        width: 70,
-        height: 70,
-        borderRadius: 20,
-        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(16, 185, 129, 0.3)',
-        marginBottom: 16,
+    brandLogo: {
+        width: 130,
+        height: 130,
+        marginBottom: 12,
     },
     brandName: {
         fontSize: 20,

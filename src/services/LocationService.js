@@ -291,7 +291,7 @@ const options = {
     name: 'ic_launcher',
     type: 'mipmap',
   },
-  color: '#d47f00ff',
+  color: '#a67a22ff',
   linkingURI: '', // Optional: URI to open your app on click
   parameters: {
     tripId: null,

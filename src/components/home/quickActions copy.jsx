@@ -3,10 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 export const QuickActions = () => {
     const actions = [
-        { id: 1, title: 'Navigation', emoji: '🗺️', color: '#4CAF50' },
+        { id: 1, title: 'Navigation', emoji: '🗺️', color: '#0c831f' },
         { id: 2, title: 'Find Gas', emoji: '⛽', color: '#2196F3' },
         { id: 3, title: 'Analytics', emoji: '📊', color: '#FF9800' },
-        { id: 4, title: 'Support', emoji: '🛠️', color: '#9C27B0' },
+        { id: 4, title: 'Support', emoji: '🛠️', color: '#4a5d23' },
     ];
 
     return (
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#2c3e50',
+        color: '#2d241e',
         marginBottom: 15,
     },
     grid: {
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#2c3e50',
+        color: '#2d241e',
         textAlign: 'center',
     },
 });

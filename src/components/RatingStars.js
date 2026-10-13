@@ -10,13 +10,13 @@ const RatingStars = ({ rating = 0, size = 16 }) => {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       {[...Array(fullStars)].map((_, i) => (
-        <Star key={`full-${i}`} size={size} color="#facc15" fill="#facc15" />
+        <Star key={`full-${i}`} size={size} color="#e9c46a" fill="#e9c46a" />
       ))}
       {hasHalfStar && (
-        <Star key="half" size={size} color="#facc15" fill="url(#half)" />
+        <Star key="half" size={size} color="#e9c46a" fill="url(#half)" />
       )}
       {[...Array(emptyStars)].map((_, i) => (
-        <Star key={`empty-${i}`} size={size} color="#d1d5db" />
+        <Star key={`empty-${i}`} size={size} color="#e9d8bf" />
       ))}
     </View>
   );

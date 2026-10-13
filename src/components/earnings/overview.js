@@ -5,14 +5,14 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getTransactionsOverview } from '../../api/transactions';
 
 const COLORS = {
-  dark: '#0F172A',      // Slate 900
-  muted: '#64748B',     // Slate 500
-  accent: '#10B981',    // Emerald 500
-  warning: '#F59E0B',   // Amber 500
-  error: '#EF4444',     // Red 500
+  dark: '#2d241e',      // Slate 900
+  muted: '#7d6b5d',     // Slate 500
+  accent: '#0c831f',    // Emerald 500
+  warning: '#e9c46a',   // Amber 500
+  error: '#d32f2f',     // Red 500
   surface: '#FFFFFF',
-  bg: '#F8FAFC',
-  border: '#E2E8F0',
+  bg: '#fdfbf7',
+  border: '#e9d8bf',
 };
 
 const EarningsOverview = ({ selectedPeriod = 'today' }) => {
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   trendBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    backgroundColor: 'rgba(12, 131, 31, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,

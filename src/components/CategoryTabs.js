@@ -45,8 +45,8 @@ const CategoryTabs = () => {
         style={[
           styles.categoryTab,
           {
-            backgroundColor: isActive ? category.bgColor : '#f9fafb',
-            borderColor: isActive ? category.color : '#e5e7eb',
+            backgroundColor: isActive ? category.bgColor : '#fdfbf7',
+            borderColor: isActive ? category.color : '#e9d8bf',
           },
         ]}
         activeOpacity={0.8}
@@ -62,7 +62,7 @@ const CategoryTabs = () => {
           style={[
             styles.categoryLabel,
             {
-              color: isActive ? category.color : '#6b7280',
+              color: isActive ? category.color : '#7d6b5d',
             },
           ]}
         >
@@ -104,12 +104,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#f5ebe0',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
+    color: '#ae2012',
   },
   scrollView: {
     flexGrow: 0,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   activeSection: {
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#fdfbf7',
   },
   activeContainer: {
     flexDirection: 'row',
@@ -158,11 +158,11 @@ const styles = StyleSheet.create({
   activeTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
+    color: '#ae2012',
   },
   activeSubtitle: {
     fontSize: 14,
-    color: '#6b7280',
+    color: '#7d6b5d',
     marginTop: 2,
   },
 });

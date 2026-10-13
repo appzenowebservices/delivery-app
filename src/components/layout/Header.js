@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === 'ios' ? 50 : 10,
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#f0f0f0',
+        borderBottomColor: '#f5ebe0',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
         paddingTop: 4,
     },
     searchInput: {
-        backgroundColor: '#f1f1f1',
+        backgroundColor: '#f5ebe0',
         borderRadius: 8,
         paddingVertical: 10,
         paddingHorizontal: 16,

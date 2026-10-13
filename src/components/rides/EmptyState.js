@@ -9,12 +9,12 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Industrial Palette
 const COLORS = {
-    dark: '#0F172A',      // Slate 900
-    muted: '#64748B',     // Slate 500
-    accent: '#10B981',    // Operational Green
+    dark: '#2d241e',      // Slate 900
+    muted: '#7d6b5d',     // Slate 500
+    accent: '#0c831f',    // Operational Green
     bg: '#FFFFFF',
-    surface: '#F8FAFC',   // Gray 50
-    border: '#F1F5F9',    // Gray 100
+    surface: '#fdfbf7',   // Gray 50
+    border: '#f5ebe0',    // Gray 100
 };
 
 export const EmptyState = () => (

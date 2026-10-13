@@ -24,13 +24,13 @@ import { getProfile } from '../api/profile';
 
 // Industrial Palette System
 const COLORS = {
-  dark: '#0F172A',      // Slate 900
-  muted: '#64748B',     // Slate 500
+  dark: '#2d241e',      // Slate 900
+  muted: '#7d6b5d',     // Slate 500
   bg: '#FFFFFF',
-  surface: '#F8FAFC',   // Gray 50
-  border: '#F1F5F9',    // Gray 100
-  accent: '#10B981',    // Operational Green
-  warning: '#F59E0B',   // Warning Amber
+  surface: '#fdfbf7',   // Gray 50
+  border: '#f5ebe0',    // Gray 100
+  accent: '#0c831f',    // Operational Green
+  warning: '#e9c46a',   // Warning Amber
 };
 
 const TripsScreen = ({ route }) => {

@@ -12,12 +12,12 @@ import { WebView } from "react-native-webview";
 
 // Industrial Palette System
 const COLORS = {
-    dark: '#0F172A',      // Slate 900
-    muted: '#64748B',     // Slate 500
-    accent: '#10B981',    // Emerald 500
-    danger: '#EF4444',    // Red 500
-    bg: '#F8FAFC',        // Gray 50
-    border: '#E2E8F0',    // Gray 200
+    dark: '#2d241e',      // Slate 900
+    muted: '#7d6b5d',     // Slate 500
+    accent: '#0c831f',    // Emerald 500
+    danger: '#d32f2f',    // Red 500
+    bg: '#fdfbf7',        // Gray 50
+    border: '#e9d8bf',    // Gray 200
 };
 
 const LeafletMapComponent = ({ pickupGeo, dropoffGeo, onRouteFound, currentLocation }) => {
@@ -55,7 +55,7 @@ const LeafletMapComponent = ({ pickupGeo, dropoffGeo, onRouteFound, currentLocat
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
     <style>
-        html,body,#map{height:100%;width:100%;margin:0;padding:0;background:#0F172A}
+        html,body,#map{height:100%;width:100%;margin:0;padding:0;background:#2d241e}
         .leaflet-routing-container{display:none !important}
         .marker-pin {
             width: 12px; height: 12px; border-radius: 50%;
@@ -64,8 +64,8 @@ const LeafletMapComponent = ({ pickupGeo, dropoffGeo, onRouteFound, currentLocat
         .pickup-pin { background: ${COLORS.accent}; }
         .dropoff-pin { background: ${COLORS.danger}; }
         .current-pin { 
-            background: #3B82F6; 
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+            background: #2196f3; 
+            box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.3);
         }
     </style>
 </head>
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     badge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        backgroundColor: 'rgba(45, 36, 30, 0.85)',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 4,

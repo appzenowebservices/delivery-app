@@ -5,13 +5,13 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getPayments } from '../../api/transactions';
 
 const COLORS = {
-  dark: '#0F172A',      // Slate 900
-  muted: '#64748B',     // Slate 500
-  accent: '#10B981',    // Emerald 500
-  bg: '#F8FAFC',        // Slate 50
+  dark: '#2d241e',      // Slate 900
+  muted: '#7d6b5d',     // Slate 500
+  accent: '#0c831f',    // Emerald 500
+  bg: '#fdfbf7',        // Slate 50
   surface: '#FFFFFF',
-  border: '#E2E8F0',
-  indigo: '#6366F1',    // For "Processing" states
+  border: '#e9d8bf',
+  indigo: '#4a5d23',    // For "Processing" states
 };
 
 const TripPayments = () => {

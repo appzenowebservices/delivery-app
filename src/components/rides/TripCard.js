@@ -5,14 +5,14 @@ import { useNavigation } from "@react-navigation/native";
 
 // Industrial Palette System
 const COLORS = {
-    dark: '#0F172A',      // Slate 900
-    muted: '#64748B',     // Slate 500
-    accent: '#10B981',    // Emerald 500
-    warning: '#F59E0B',   // Amber 500
-    danger: '#EF4444',    // Red 500
+    dark: '#2d241e',      // Slate 900
+    muted: '#7d6b5d',     // Slate 500
+    accent: '#0c831f',    // Emerald 500
+    warning: '#e9c46a',   // Amber 500
+    danger: '#d32f2f',    // Red 500
     bg: '#FFFFFF',
-    surface: '#F8FAFC',   // Gray 50
-    border: '#F1F5F9',    // Gray 100
+    surface: '#fdfbf7',   // Gray 50
+    border: '#f5ebe0',    // Gray 100
 };
 
 const TripCard = ({ trip }) => {
@@ -241,7 +241,7 @@ const getStatusColor = (s) => {
         case "assigned": return COLORS.dark;
         case "arrived_at_pickup": return COLORS.warning;
         case "picked_up": return COLORS.accent;
-        case "delivered": return '#3B82F6'; // Info Blue
+        case "delivered": return '#2196f3'; // Info Blue
         case "cancelled": return COLORS.danger;
         default: return COLORS.muted;
     }

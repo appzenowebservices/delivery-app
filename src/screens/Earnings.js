@@ -15,12 +15,12 @@ import TripHistory from '../components/earnings/tripHistory';
 import TripPayments from '../components/earnings/payments';
 
 const COLORS = {
-  dark: '#0F172A',      // Slate 900
-  muted: '#64748B',     // Slate 500
-  accent: '#10B981',    // Emerald 500
-  bg: '#F8FAFC',        // Slate 50
+  dark: '#2d241e',      // Slate 900
+  muted: '#7d6b5d',     // Slate 500
+  accent: '#0c831f',    // Emerald 500
+  bg: '#fdfbf7',        // Slate 50
   surface: '#FFFFFF',
-  border: '#E2E8F0',    // Slate 200
+  border: '#e9d8bf',    // Slate 200
 };
 
 const CaptainEarningsScreen = () => {

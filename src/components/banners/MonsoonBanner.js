@@ -6,12 +6,12 @@ const { width } = Dimensions.get('window');
 
 // Industrial Palette
 const COLORS = {
-    dark: '#0F172A',      // Slate 900
-    muted: '#94A3B8',     // Slate 400
-    accent: '#10B981',    // Emerald 500
-    warning: '#F59E0B',   // Warning Amber
+    dark: '#2d241e',      // Slate 900
+    muted: '#a68b66',     // Slate 400
+    accent: '#0c831f',    // Emerald 500
+    warning: '#e9c46a',   // Warning Amber
     bg: '#FFFFFF',
-    border: '#F1F5F9',    // Gray 100
+    border: '#f5ebe0',    // Gray 100
 };
 
 const MonsoonBanner = () => {
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         padding: 20,
         justifyContent: 'space-between',
-        backgroundColor: 'rgba(15, 23, 42, 0.3)', // Slate tint
+        backgroundColor: 'rgba(45, 36, 30, 0.3)', // Slate tint
     },
     topRow: {
         flexDirection: 'row',

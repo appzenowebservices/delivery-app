@@ -4,20 +4,20 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Industrial Palette
 const COLORS = {
-    dark: '#0F172A',      // Slate 900
-    muted: '#94A3B8',     // Slate 400
+    dark: '#2d241e',      // Slate 900
+    muted: '#a68b66',     // Slate 400
     bg: '#FFFFFF',
-    surface: '#F8FAFC',   // Gray 50
-    border: '#F1F5F9',    // Gray 100
-    accent: '#10B981',    // Operational Green
+    surface: '#fdfbf7',   // Gray 50
+    border: '#f5ebe0',    // Gray 100
+    accent: '#0c831f',    // Operational Green
 };
 
 export const QuickActions = () => {
     const actions = [
-        { id: 1, title: 'GUIDE', icon: 'map-search-outline', color: '#3b82f6' },
-        { id: 2, title: 'FUEL', icon: 'gas-station-outline', color: '#f59e0b' },
-        { id: 3, title: 'LOGS', icon: 'clipboard-text-clock-outline', color: '#6366f1' },
-        { id: 4, title: 'AID', icon: 'hammer-wrench', color: '#ef4444' },
+        { id: 1, title: 'GUIDE', icon: 'map-search-outline', color: '#2196f3' },
+        { id: 2, title: 'FUEL', icon: 'gas-station-outline', color: '#e9c46a' },
+        { id: 3, title: 'LOGS', icon: 'clipboard-text-clock-outline', color: '#4a5d23' },
+        { id: 4, title: 'AID', icon: 'hammer-wrench', color: '#d32f2f' },
     ];
 
     return (

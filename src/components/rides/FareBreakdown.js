@@ -3,10 +3,10 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 const COLORS = {
-    dark: '#0F172A',      // Slate 900
-    muted: '#64748B',     // Slate 500
-    border: '#E2E8F0',    // Gray 200
-    surface: '#F8FAFC',   // Gray 50
+    dark: '#2d241e',      // Slate 900
+    muted: '#7d6b5d',     // Slate 500
+    border: '#e9d8bf',    // Gray 200
+    surface: '#fdfbf7',   // Gray 50
 };
 
 const formatFareLabel = (key) =>

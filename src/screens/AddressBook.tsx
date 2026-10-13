@@ -7,13 +7,13 @@ import AddressMap from "../components/AddressMap";
 import { getProfile, patchProfile } from "../api/profile";
 
 const COLORS = {
-  dark: '#0F172A',      // Slate 900
-  muted: '#64748B',     // Slate 500
-  accent: '#10B981',    // Emerald 500
-  bg: '#F8FAFC',        // Slate 50
+  dark: '#2d241e',      // Slate 900
+  muted: '#7d6b5d',     // Slate 500
+  accent: '#0c831f',    // Emerald 500
+  bg: '#fdfbf7',        // Slate 50
   surface: '#FFFFFF',
-  border: '#E2E8F0',
-  indigo: '#6366F1',
+  border: '#e9d8bf',
+  indigo: '#4a5d23',
 };
 
 export default function AddressBook() {
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0, left: 0, right: 0,
     height: 1,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: 'rgba(12, 131, 31, 0.2)',
   },
   cornerBracket: { position: 'absolute', width: 15, height: 15, borderColor: COLORS.accent, opacity: 0.5 },
 
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   pincodeText: { fontSize: 9, fontWeight: '800', color: COLORS.dark, fontFamily: 'monospace' },
-  emptyText: { color: '#EF4444', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
+  emptyText: { color: '#d32f2f', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
 
   footerRow: {
     flexDirection: 'row',

@@ -44,11 +44,11 @@ const styles = StyleSheet.create({
     summaryAmount: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ae2012',
         marginBottom: 4,
     },
     summaryLabel: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#7d6b5d',
     },
 });

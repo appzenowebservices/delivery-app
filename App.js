@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { ActivityIndicator, View, StatusBar } from "react-native";
+import { ActivityIndicator, View, StatusBar, Image } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import messaging from "@react-native-firebase/messaging";
 
@@ -26,9 +26,9 @@ const Stack = createNativeStackNavigator();
 
 // Industrial Palette match
 const COLORS = {
-  dark: '#0F172A',
+  dark: '#2d241e',
   surface: '#FFFFFF',
-  accent: '#10B981', // Emerald
+  accent: '#0c831f', // Emerald
 };
 
 export default function App() {
@@ -85,8 +85,13 @@ export default function App() {
     <NavigationContainer ref={navigationRef}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.dark} />
       {initialRoute === null ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#F8FAFC' }}>
-          <ActivityIndicator size="large" color={COLORS.dark} />
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#2d241e' }}>
+          <Image
+            source={require("./src/assets/doot.png")}
+            style={{ width: 140, height: 140, marginBottom: 24 }}
+            resizeMode="contain"
+          />
+          <ActivityIndicator size="large" color="#FFFFFF" />
         </View>
       ) : (
         <Stack.Navigator 

@@ -1,0 +1,10 @@
+<resources>
+
+    <!-- Android 12+ uses the platform splash screen API. -->
+    <style name="SplashTheme" parent="AppTheme">
+        <item name="android:windowSplashScreenBackground">@color/splash_bg</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+    </style>
+
+</resources>

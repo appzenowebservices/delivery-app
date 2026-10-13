@@ -44,7 +44,7 @@ const options = {
         name: 'ic_launcher',
         type: 'mipmap',
     },
-    color: '#007bff',
+    color: '#2196f3',
     linkingURI: 'apnidesidukaan://tracking',
     parameters: {
         delay: 10000, // every 10 seconds

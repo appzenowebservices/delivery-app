@@ -18,13 +18,13 @@ import { acceptRide } from '../../api/trips';
 
 // Industrial Palette System
 const COLORS = {
-  dark: '#0F172A',      // Slate 900
-  muted: '#64748B',     // Slate 500
-  accent: '#10B981',    // Emerald (Success)
-  danger: '#EF4444',    // Red (Urgent)
+  dark: '#2d241e',      // Slate 900
+  muted: '#7d6b5d',     // Slate 500
+  accent: '#0c831f',    // Emerald (Success)
+  danger: '#d32f2f',    // Red (Urgent)
   bg: '#FFFFFF',
-  surface: '#F8FAFC',   // Gray 50
-  border: '#F1F5F9',    // Gray 100
+  surface: '#fdfbf7',   // Gray 50
+  border: '#f5ebe0',    // Gray 100
 };
 
 const IncomingRideRequestCard = ({
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   gaugeContainer: {
     height: 4,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#2d241e',
   },
   gaugeFill: {
     height: '100%',

@@ -24,12 +24,12 @@ import { QuickActions } from '../components/home/quickActions';
 // Industrial Palette
 const COLORS = {
   bg: '#FFFFFF',
-  surface: '#F8FAFC', // Gray 50
-  border: '#F1F5F9', // Gray 100
-  textPrimary: '#0F172A', // Slate 900
-  textMuted: '#94A3B8', // Slate 400
-  accent: '#10B981', // Emerald 500 (Operational Green)
-  dark: '#111827', // Gray 900
+  surface: '#fdfbf7', // Gray 50
+  border: '#f5ebe0', // Gray 100
+  textPrimary: '#2d241e', // Slate 900
+  textMuted: '#a68b66', // Slate 400
+  accent: '#0c831f', // Emerald 500 (Operational Green)
+  dark: '#ae2012', // Gray 900
 };
 
 const NAV_ITEMS = [

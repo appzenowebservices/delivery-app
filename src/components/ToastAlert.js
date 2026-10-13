@@ -12,7 +12,7 @@ export default function ToastAlert({ visible, type = "success", message }) {
             <View
                 style={[
                     styles.toast,
-                    { backgroundColor: isSuccess ? "#16a34a" : "#dc2626" },
+                    { backgroundColor: isSuccess ? "#0c831f" : "#b71c1c" },
                 ]}
             >
                 <Text style={styles.text}>{message}</Text>

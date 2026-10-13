@@ -157,7 +157,7 @@ const CaptainEarningsScreen = () => {
     return (
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Main Earnings Card */}
-        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.mainEarningsCard}>
+        <LinearGradient colors={['#4a5d23', '#4a5d23']} style={styles.mainEarningsCard}>
           <View style={styles.earningsHeader}>
             <Text style={styles.earningsLabel}>Net Earnings</Text>
             <Text style={styles.mainEarningsAmount}>${data.netEarnings.toFixed(2)}</Text>
@@ -398,19 +398,19 @@ const CaptainEarningsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#fdfbf7',
   },
   header: {
     backgroundColor: '#ffffff',
     paddingVertical: 20,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#e9d8bf',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#2c3e50',
+    color: '#2d241e',
     textAlign: 'center',
   },
   periodSelector: {
@@ -418,22 +418,22 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#e9d8bf',
   },
   periodButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
     marginRight: 10,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fdfbf7',
   },
   activePeriodButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#4a5d23',
   },
   periodButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#7f8c8d',
+    color: '#7d6b5d',
   },
   activePeriodButtonText: {
     color: '#ffffff',
@@ -452,15 +452,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTabButton: {
-    borderBottomColor: '#667eea',
+    borderBottomColor: '#4a5d23',
   },
   tabButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#7f8c8d',
+    color: '#7d6b5d',
   },
   activeTabButtonText: {
-    color: '#667eea',
+    color: '#4a5d23',
   },
   content: {
     flex: 1,
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2c3e50',
+    color: '#2d241e',
     marginBottom: 15,
   },
   breakdownContainer: {
@@ -540,40 +540,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f8f9fa',
+    borderBottomColor: '#fdfbf7',
   },
   totalRow: {
     borderBottomWidth: 0,
     borderTopWidth: 2,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: '#e9d8bf',
     marginTop: 10,
     paddingTop: 15,
   },
   breakdownDesc: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#2d241e',
     fontWeight: '500',
   },
   totalDesc: {
     fontSize: 18,
-    color: '#2c3e50',
+    color: '#2d241e',
     fontWeight: '700',
   },
   breakdownAmount: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#2d241e',
     fontWeight: '600',
   },
   totalAmount: {
     fontSize: 20,
-    color: '#27ae60',
+    color: '#0c831f',
     fontWeight: '700',
   },
   positiveAmount: {
-    color: '#27ae60',
+    color: '#0c831f',
   },
   negativeAmount: {
-    color: '#e74c3c',
+    color: '#d32f2f',
   },
   metricsGrid: {
     flexDirection: 'row',
@@ -595,12 +595,12 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2c3e50',
+    color: '#2d241e',
     marginBottom: 4,
   },
   metricLabel: {
     fontSize: 12,
-    color: '#7f8c8d',
+    color: '#7d6b5d',
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -623,35 +623,35 @@ const styles = StyleSheet.create({
   goalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#2c3e50',
+    color: '#2d241e',
   },
   goalAmount: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#667eea',
+    color: '#4a5d23',
   },
   progressContainer: {
     marginBottom: 10,
   },
   progressBar: {
     height: 10,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#e9d8bf',
     borderRadius: 5,
     overflow: 'hidden',
     marginBottom: 8,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#0c831f',
   },
   progressText: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#7d6b5d',
     textAlign: 'center',
   },
   goalRemaining: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#7d6b5d',
     textAlign: 'center',
   },
   tripsList: {
@@ -679,18 +679,18 @@ const styles = StyleSheet.create({
   },
   tripDate: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#7d6b5d',
     fontWeight: '500',
   },
   tripTimeText: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#2d241e',
     fontWeight: '600',
     marginTop: 2,
   },
   tripTotal: {
     fontSize: 20,
-    color: '#27ae60',
+    color: '#0c831f',
     fontWeight: '700',
   },
   tripRoute: {
@@ -705,26 +705,26 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#0c831f',
     marginRight: 12,
   },
   destinationDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#f44336',
+    backgroundColor: '#d32f2f',
     marginRight: 12,
   },
   routeLine: {
     width: 2,
     height: 20,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#e9d8bf',
     marginLeft: 5,
     marginVertical: -4,
   },
   routeText: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#2d241e',
     fontWeight: '500',
     flex: 1,
   },
@@ -735,19 +735,19 @@ const styles = StyleSheet.create({
   },
   tripDetailText: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#7d6b5d',
   },
   tripEarnings: {
     alignItems: 'flex-end',
   },
   fareText: {
     fontSize: 14,
-    color: '#2c3e50',
+    color: '#2d241e',
     fontWeight: '500',
   },
   tipText: {
     fontSize: 14,
-    color: '#27ae60',
+    color: '#0c831f',
     fontWeight: '500',
     marginTop: 2,
   },
@@ -768,19 +768,19 @@ const styles = StyleSheet.create({
   },
   paymentSummaryTitle: {
     fontSize: 16,
-    color: '#7f8c8d',
+    color: '#7d6b5d',
     fontWeight: '500',
     marginBottom: 8,
   },
   nextPayoutAmount: {
     fontSize: 32,
-    color: '#2c3e50',
+    color: '#2d241e',
     fontWeight: '700',
     marginBottom: 4,
   },
   nextPayoutDate: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#7d6b5d',
   },
   paymentCard: {
     backgroundColor: '#ffffff',
@@ -803,25 +803,25 @@ const styles = StyleSheet.create({
   },
   paymentDate: {
     fontSize: 16,
-    color: '#2c3e50',
+    color: '#2d241e',
     fontWeight: '600',
     marginBottom: 4,
   },
   paymentMethod: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#7d6b5d',
     marginBottom: 2,
   },
   paymentReference: {
     fontSize: 12,
-    color: '#95a5a6',
+    color: '#a68b66',
   },
   paymentAmount: {
     alignItems: 'flex-end',
   },
   paymentAmountText: {
     fontSize: 20,
-    color: '#27ae60',
+    color: '#0c831f',
     fontWeight: '700',
     marginBottom: 8,
   },
@@ -831,20 +831,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   statusCompleted: {
-    backgroundColor: '#d4edda',
+    backgroundColor: '#d3ebd8',
   },
   statusPending: {
-    backgroundColor: '#fff3cd',
+    backgroundColor: '#faedcc',
   },
   statusText: {
     fontSize: 12,
     fontWeight: '600',
   },
   statusCompletedText: {
-    color: '#155724',
+    color: '#0a671a',
   },
   statusPendingText: {
-    color: '#856404',
+    color: '#8a6420',
   },
 });
 
