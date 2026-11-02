@@ -93,3 +93,6 @@ replay_pid*.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# appium e2e artifacts
+e2e/artifacts/

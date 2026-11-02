@@ -1,5 +1,5 @@
 // screens/ProfileScreen.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,22 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Alert,
   StatusBar,
   Platform,
+  Animated,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { getProfile } from '../api/profile';
+import { launchImageLibrary } from 'react-native-image-picker';
+import { getProfile, patchProfile } from '../api/profile';
+import { uploadProfileImage } from '../api/uploadthing';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { navigate } from "../../src/utils/navigationService";
+import { reset, navigate } from "../../src/utils/navigationService";
+import ConfirmModal from '../components/ConfirmModal';
+import ToastAlert from '../components/ToastAlert';
+
+const PROFILE_IMAGE_KEY = 'profileImageUrl';
 
 const COLORS = {
   dark: '#2d241e',      // Slate 900
@@ -29,27 +37,119 @@ const COLORS = {
 
 const ProfileScreen = () => {
   const [userProfile, setUserProfile] = useState(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [alert, setAlert] = useState({ visible: false, type: 'success', message: '' });
+  const logoutTimer = useRef(null);
+  const alertTimer = useRef(null);
+  const logoutAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => () => {
+    if (logoutTimer.current) clearTimeout(logoutTimer.current);
+    if (alertTimer.current) clearTimeout(alertTimer.current);
+  }, []);
+
+  const showAlert = (type, message, duration = 3500) => {
+    if (alertTimer.current) clearTimeout(alertTimer.current);
+    setAlert({ visible: true, type, message });
+    alertTimer.current = setTimeout(() => {
+      setAlert((prev) => ({ ...prev, visible: false }));
+    }, duration);
+  };
+
+  useEffect(() => {
+    if (!loggingOut) return;
+    logoutAnim.setValue(0);
+    Animated.timing(logoutAnim, {
+      toValue: 1,
+      duration: 400,
+      useNativeDriver: true,
+    }).start();
+  }, [loggingOut, logoutAnim]);
 
   useEffect(() => {
     getProfile()
-      .then(response => {
-        setUserProfile(response?.data?.user);
+      .then(async (response) => {
+        const user = response?.data?.user;
+        setUserProfile(user);
+
+        if (user?.profileImage) {
+          setAvatarUrl(user.profileImage);
+          await AsyncStorage.setItem(PROFILE_IMAGE_KEY, user.profileImage);
+        } else {
+          const cached = await AsyncStorage.getItem(PROFILE_IMAGE_KEY);
+          if (cached) setAvatarUrl(cached);
+        }
       })
       .catch(error => console.error(error));
   }, []);
 
-  const handleLogout = async () => {
-    Alert.alert('SYSTEM LOGOUT', 'Deactivate current operator session?', [
-      { text: 'CANCEL', style: 'cancel' },
-      {
-        text: 'DEACTIVATE',
-        style: 'destructive',
-        onPress: async () => {
-          await AsyncStorage.removeItem('authToken');
-          navigate("Login");
-        },
-      },
-    ]);
+  const handlePickImage = async () => {
+    if (uploading || loggingOut) return;
+
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        selectionLimit: 1,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        quality: 0.85,
+      });
+
+      if (result.didCancel) return;
+      if (result.errorCode) {
+        throw new Error(result.errorMessage || 'Could not open the photo library.');
+      }
+
+      const asset = result.assets?.[0];
+      if (!asset?.uri) return;
+
+      setUploading(true);
+      const url = await uploadProfileImage(asset);
+
+      setAvatarUrl(url);
+      await AsyncStorage.setItem(PROFILE_IMAGE_KEY, url);
+
+      let synced = false;
+      if (userProfile?.id) {
+        try {
+          await patchProfile(userProfile.id, { profileImage: url });
+          synced = true;
+        } catch (syncError) {
+          console.log('Profile image sync failed:', syncError?.message);
+        }
+      }
+
+      showAlert(
+        'success',
+        synced
+          ? 'Profile photo updated.'
+          : 'Photo updated on this device. Server sync is not available yet.'
+      );
+    } catch (err) {
+      showAlert('error', err?.message || 'Could not update profile photo.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    if (loggingOut) return;
+    setConfirmVisible(true);
+  };
+
+  const confirmLogout = async () => {
+    setConfirmVisible(false);
+    try {
+      await AsyncStorage.removeItem('authToken');
+    } finally {
+      setLoggingOut(true);
+      logoutTimer.current = setTimeout(() => {
+        reset('Login');
+      }, 1700);
+    }
   };
 
   if (!userProfile) return (
@@ -62,20 +162,30 @@ const ProfileScreen = () => {
     {
       section: 'OPERATIONAL LOGS',
       items: [
-        { icon: 'history', title: 'Voyage Archive', screen: 'Orders' },
-        { icon: 'map-marker-outline', title: 'Navigation Points', screen: 'AddressBook' },
-        { icon: 'file-document-outline', title: 'Tax & Compliance' },
+        { icon: 'history', title: 'Voyage Archive', caption: 'Active & archived trips', screen: 'Trips' },
+        { icon: 'map-marker-outline', title: 'Navigation Points', caption: 'Saved locations', screen: 'AddressBook' },
+        { icon: 'file-document-outline', title: 'Tax & Compliance', caption: 'PAN, licence & verification', section: 'tax' },
       ],
     },
     {
       section: 'SYSTEM CONFIG',
       items: [
-        { icon: 'wallet-outline', title: 'Payout Settings' },
-        { icon: 'shield-cog-outline', title: 'Security Protocol' },
-        { icon: 'cellphone-cog', title: 'App Configuration' },
+        { icon: 'wallet-outline', title: 'Payout Settings', caption: 'UPI & bank details', section: 'payouts' },
+        { icon: 'shield-cog-outline', title: 'Security Protocol', caption: 'Session & account safety', section: 'security' },
+        { icon: 'cellphone-cog', title: 'App Configuration', caption: 'Build info & preferences', section: 'app' },
       ],
     },
   ];
+
+  const openItem = (item) => {
+    if (item.screen) {
+      navigate(item.screen);
+      return;
+    }
+    if (item.section) {
+      navigate('ProfileSection', { section: item.section });
+    }
+  };
 
   return (
     <View style={styles.mainWrapper}>
@@ -86,9 +196,34 @@ const ProfileScreen = () => {
         {/* OPERATOR HUD HEADER */}
         <View style={styles.headerHUD}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatarInner}>
-              <Text style={styles.avatarInitial}>{userProfile?.name?.charAt(0)}</Text>
-            </View>
+            <TouchableOpacity
+              style={styles.avatarInner}
+              onPress={handlePickImage}
+              disabled={uploading}
+              activeOpacity={0.85}
+            >
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarInitial}>{userProfile?.name?.charAt(0)}</Text>
+              )}
+
+              {uploading && (
+                <View style={styles.avatarLoading}>
+                  <ActivityIndicator color="#FFFFFF" />
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.editBadge}
+              onPress={handlePickImage}
+              disabled={uploading}
+              activeOpacity={0.85}
+            >
+              <Icon name="camera" size={13} color="#FFFFFF" />
+            </TouchableOpacity>
+
             <View style={styles.onlineBadge} />
           </View>
           
@@ -112,9 +247,9 @@ const ProfileScreen = () => {
 
         {/* QUICK ACCESS PANEL */}
         <View style={styles.quickGrid}>
-          <QuickTile icon="lightning-bolt" label="PERFORMANCE" color={COLORS.warning} />
-          <QuickTile icon="lifebuoy" label="HELPDESK" color={COLORS.accent} />
-          <QuickTile icon="shield-check" label="INSURANCE" color={COLORS.muted} />
+          <QuickTile icon="lightning-bolt" label="PERFORMANCE" color={COLORS.warning} onPress={() => navigate('Earnings')} />
+          <QuickTile icon="lifebuoy" label="HELPDESK" color={COLORS.accent} onPress={() => navigate('ProfileSection', { section: 'support' })} />
+          <QuickTile icon="shield-check" label="INSURANCE" color={COLORS.muted} onPress={() => navigate('ProfileSection', { section: 'insurance' })} />
         </View>
 
         {/* MENU SECTIONS */}
@@ -125,14 +260,17 @@ const ProfileScreen = () => {
                 <View style={styles.sectionCard}>
                     {section.items.map((item, j) => (
                         <TouchableOpacity
-                            onPress={() => item.screen && navigate(item.screen)}
+                            onPress={() => openItem(item)}
                             key={j}
                             style={[styles.menuItem, j === section.items.length -1 && { borderBottomWidth: 0 }]}>
                             <View style={styles.menuItemLeft}>
                                 <View style={styles.iconCircle}>
                                     <Icon name={item.icon} size={20} color={COLORS.dark} />
                                 </View>
-                                <Text style={styles.menuItemText}>{item.title}</Text>
+                                <View style={styles.menuTextBlock}>
+                                    <Text style={styles.menuItemText}>{item.title}</Text>
+                                    <Text style={styles.menuItemCaption}>{item.caption}</Text>
+                                </View>
                             </View>
                             <Icon name="chevron-right" size={18} color={COLORS.border} />
                         </TouchableOpacity>
@@ -150,12 +288,42 @@ const ProfileScreen = () => {
         
         <Text style={styles.versionText}>CORE_SYSTEM v4.0.2-STABLE</Text>
       </ScrollView>
+
+      {loggingOut && (
+        <Animated.View style={[styles.logoutOverlay, { opacity: logoutAnim }]}>
+          <Image
+            source={require('../assets/doot.png')}
+            style={styles.logoutLogo}
+            resizeMode="contain"
+          />
+          <View style={styles.logoutIconCircle}>
+            <Icon name="power" size={34} color={COLORS.error} />
+          </View>
+          <Text style={styles.logoutTitle}>SESSION TERMINATED</Text>
+          <Text style={styles.logoutSubtitle}>You have been securely logged out</Text>
+          <ActivityIndicator color={COLORS.accent} style={styles.logoutSpinner} />
+        </Animated.View>
+      )}
+
+      <ConfirmModal
+        visible={confirmVisible}
+        icon="power"
+        destructive
+        title="TERMINATE SESSION?"
+        message="Your live location sharing will stop and you will be signed out of this device."
+        confirmLabel="TERMINATE"
+        cancelLabel="STAY ONLINE"
+        onCancel={() => setConfirmVisible(false)}
+        onConfirm={confirmLogout}
+      />
+
+      <ToastAlert visible={alert.visible} type={alert.type} message={alert.message} />
     </View>
   );
 };
 
-const QuickTile = ({ icon, label, color }) => (
-    <TouchableOpacity style={styles.tile}>
+const QuickTile = ({ icon, label, color, onPress }) => (
+    <TouchableOpacity style={styles.tile} onPress={onPress} activeOpacity={0.85}>
         <Icon name={icon} size={24} color={color} />
         <Text style={styles.tileLabel}>{label}</Text>
     </TouchableOpacity>
@@ -191,6 +359,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarInitial: { color: COLORS.dark, fontSize: 36, fontWeight: '800' },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 45,
+  },
+  avatarLoading: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 45,
+    backgroundColor: 'rgba(45, 36, 30, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 2,
+    left: 2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.accent,
+    borderWidth: 3,
+    borderColor: COLORS.dark,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   onlineBadge: {
     position: 'absolute',
     bottom: 5,
@@ -262,7 +455,9 @@ const styles = StyleSheet.create({
   },
   menuItemLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   iconCircle: { width: 36, height: 36, borderRadius: 10, backgroundColor: COLORS.bg, justifyContent: 'center', alignItems: 'center' },
+  menuTextBlock: { gap: 2, flexShrink: 1 },
   menuItemText: { fontSize: 14, fontWeight: '700', color: COLORS.dark },
+  menuItemCaption: { fontSize: 10, fontWeight: '600', color: COLORS.muted },
 
   logoutButton: {
     marginHorizontal: 20,
@@ -283,6 +478,46 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontFamily: 'monospace'
   },
+
+  logoutOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.dark,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2000,
+    elevation: 20,
+  },
+  logoutLogo: {
+    width: 128,
+    height: 128,
+    marginBottom: 24,
+  },
+  logoutIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: 'rgba(211, 47, 47, 0.12)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(211, 47, 47, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoutTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: 3,
+  },
+  logoutSubtitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#c9b8a8',
+    marginTop: 10,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+  logoutSpinner: { marginTop: 28 },
 });
 
 export default ProfileScreen;

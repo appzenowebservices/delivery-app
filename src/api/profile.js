@@ -14,5 +14,6 @@ export const getProfile = () => apiClient.get(`api/v1/delivery-partner/profile`,
 
 
 );
-export const patchProfile = (payload) => apiClient.patch(`api/v1/delivery-partner/profile/68ac215fc74d1848b541be59`, payload);
+export const patchProfile = (id, payload) =>
+    apiClient.patch(`api/v1/delivery-partner/profile/${id}`, payload);
 export const postFcmToken = (payload) => apiClient.post(`api/v1/delivery-partner/profile/fcm-token`, payload);

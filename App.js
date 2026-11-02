@@ -14,6 +14,7 @@ import TripsScreen from "./src/screens/Trips";
 import MapScreen from "./src/screens/MapScreen";
 import AddressBook from "./src/screens/AddressBook";
 import LoginScreen from "./src/screens/LoginScreen";
+import ProfileSectionScreen from "./src/screens/ProfileSection";
 
 // Utils
 import { navigate, navigationRef } from "./src/utils/navigationService";
@@ -127,6 +128,11 @@ export default function App() {
             name="Profile" 
             component={ProfileScreen} 
             options={{ title: 'OPERATOR_PROFILE' }}
+          />
+          <Stack.Screen 
+            name="ProfileSection" 
+            component={ProfileSectionScreen} 
+            options={{ title: 'OPERATOR_RECORDS' }}
           />
           <Stack.Screen 
             name="Earnings" 

@@ -12,6 +12,7 @@
 <!-- Optional: For running foreground services -->
 <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <uses-permission android:name="android.permission.VIBRATE" />
+<uses-permission android:name="android.permission.CAMERA" />
 
 <!-- Optional: For internet access (if sending location to server) -->
 <uses-permission android:name="android.permission.INTERNET" />

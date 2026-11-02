@@ -1,0 +1,13 @@
+{
+  "name": "apniride-test-suite",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cockpit for ApniRide: runs the Android (Appium) smoke on a connected phone and records every run in SQLite.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node server/index.mjs"
+  }
+}

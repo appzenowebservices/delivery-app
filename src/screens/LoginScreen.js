@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     View,
     Text,
@@ -9,15 +9,36 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    Dimensions,
-    Image
+    Image,
+    Animated
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { login } from "../api/auth";
 import ToastAlert from "../components/ToastAlert";
 
-const { width } = Dimensions.get('window');
+const getLoginErrorMessage = (err) => {
+    const data = err?.response?.data;
+
+    if (data && typeof data === "object") {
+        if (data.message) return data.message;
+        if (data.error) return data.error;
+    }
+
+    if (err?.code === "ECONNABORTED") {
+        return "Request timed out. Please check your connection and try again.";
+    }
+    if (!err?.response) {
+        return "Network error. Please check your internet connection.";
+    }
+
+    const status = err.response.status;
+    if (status === 404) return "No account found for this mobile number. Please sign up first.";
+    if (status === 401 || status === 403) return "You are not authorized to log in.";
+    if (status >= 500) return "Server is unavailable right now. Please try again shortly.";
+
+    return "Unable to log in. Please try again.";
+};
 
 const COLORS = {
     dark: '#2d241e',      // Slate 900
@@ -33,22 +54,61 @@ export default function CaptainLoginScreen({ navigation }) {
     const [loading, setLoading] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [alert, setAlert] = useState({ visible: false, type: "success", message: "" });
+    const [success, setSuccess] = useState(false);
+    const [captainName, setCaptainName] = useState("");
+    const alertTimer = useRef(null);
+    const redirectTimer = useRef(null);
+    const successAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => () => {
+        if (alertTimer.current) clearTimeout(alertTimer.current);
+        if (redirectTimer.current) clearTimeout(redirectTimer.current);
+    }, []);
+
+    useEffect(() => {
+        if (!success) return;
+        successAnim.setValue(0);
+        Animated.timing(successAnim, {
+            toValue: 1,
+            duration: 450,
+            useNativeDriver: true,
+        }).start();
+    }, [success, successAnim]);
+
+    const showAlert = (type, message, duration = 3500) => {
+        if (alertTimer.current) clearTimeout(alertTimer.current);
+        setAlert({ visible: true, type, message });
+        alertTimer.current = setTimeout(() => {
+            setAlert((prev) => ({ ...prev, visible: false }));
+        }, duration);
+    };
 
     const handleLogin = async () => {
-        if (!/^[6-9]\d{9}$/.test(phone)) {
-            setAlert({ visible: true, type: "error", message: "INVALID OPERATOR CREDENTIALS" });
-            setTimeout(() => setAlert({ ...alert, visible: false }), 3000);
+        const mobile = phone.replace(/\D/g, "");
+
+        if (!/^[6-9]\d{9}$/.test(mobile)) {
+            showAlert("error", "Enter a valid 10-digit mobile number");
             return;
         }
+
         try {
             setLoading(true);
-            const res = await login(phone);
-            if (!res?.data?.token) throw new Error("AUTHENTICATION REJECTED");
-            await AsyncStorage.setItem("authToken", res.data.token);
-            navigation.replace("Home");
+            const res = await login(mobile);
+            const token = res?.data?.token || res?.data?.data?.token;
+
+            if (!token) {
+                showAlert("error", res?.data?.message || "Unable to log in. Please try again.");
+                return;
+            }
+
+            await AsyncStorage.setItem("authToken", token);
+            setCaptainName(res?.data?.user?.name || "");
+            setSuccess(true);
+            redirectTimer.current = setTimeout(() => {
+                navigation.replace("Home");
+            }, 1700);
         } catch (err) {
-            setAlert({ visible: true, type: "error", message: err.message.toUpperCase() });
-            setTimeout(() => setAlert({ ...alert, visible: false }), 3000);
+            showAlert("error", getLoginErrorMessage(err));
         } finally {
             setLoading(false);
         }
@@ -108,7 +168,7 @@ export default function CaptainLoginScreen({ navigation }) {
                             value={phone}
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setIsFocused(false)}
-                            onChangeText={setPhone}
+                            onChangeText={(text) => setPhone(text.replace(/\D/g, ""))}
                         />
                         {phone.length === 10 && (
                             <Icon name="check-decagram" size={20} color={COLORS.accent} style={{marginRight: 15}} />
@@ -117,9 +177,9 @@ export default function CaptainLoginScreen({ navigation }) {
                 </View>
 
                 <TouchableOpacity
-                    style={[styles.authButton, (loading || phone.length < 10) && styles.buttonDisabled]}
+                    style={[styles.authButton, (loading || success || phone.length < 10) && styles.buttonDisabled]}
                     onPress={handleLogin}
-                    disabled={loading || phone.length < 10}
+                    disabled={loading || success || phone.length < 10}
                 >
                     {loading ? (
                         <ActivityIndicator color="#FFFFFF" />
@@ -144,6 +204,24 @@ export default function CaptainLoginScreen({ navigation }) {
             </View>
 
             <ToastAlert visible={alert.visible} type={alert.type} message={alert.message} />
+
+            {success && (
+                <Animated.View style={[styles.successOverlay, { opacity: successAnim }]}>
+                    <Image
+                        source={require("../assets/doot.png")}
+                        style={styles.successLogo}
+                        resizeMode="contain"
+                    />
+                    <View style={styles.successIconCircle}>
+                        <Icon name="check-bold" size={34} color={COLORS.accent} />
+                    </View>
+                    <Text style={styles.successTitle}>ACCESS GRANTED</Text>
+                    <Text style={styles.successSubtitle}>
+                        {captainName ? `Welcome aboard, ${captainName}` : "Login successful"}
+                    </Text>
+                    <ActivityIndicator color={COLORS.accent} style={{ marginTop: 28 }} />
+                </Animated.View>
+            )}
         </KeyboardAvoidingView>
     );
 }
@@ -280,4 +358,43 @@ const styles = StyleSheet.create({
     },
     line: { flex: 1, height: 1, backgroundColor: COLORS.border },
     footerVersion: { fontSize: 9, fontWeight: '800', color: COLORS.muted, letterSpacing: 2 },
+
+    successOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: COLORS.dark,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 2000,
+        elevation: 20,
+    },
+    successLogo: {
+        width: 128,
+        height: 128,
+        marginBottom: 24,
+    },
+    successIconCircle: {
+        width: 68,
+        height: 68,
+        borderRadius: 34,
+        backgroundColor: 'rgba(12, 131, 31, 0.12)',
+        borderWidth: 1.5,
+        borderColor: 'rgba(12, 131, 31, 0.55)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    successTitle: {
+        fontSize: 16,
+        fontWeight: '900',
+        color: '#FFFFFF',
+        letterSpacing: 3,
+    },
+    successSubtitle: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#c9b8a8',
+        marginTop: 10,
+        textAlign: 'center',
+        paddingHorizontal: 40,
+    },
 });

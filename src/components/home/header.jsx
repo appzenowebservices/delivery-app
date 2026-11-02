@@ -5,9 +5,9 @@ import {
     StyleSheet,
     TouchableOpacity,
     Image,
-    Switch,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import OnlineToggle from './OnlineToggle';
 
 // Industrial Design System
 const COLORS = {
@@ -19,18 +19,8 @@ const COLORS = {
     border: '#f5ebe0',   // Gray 100
 };
 
-export const Header = ({ profile, patchProfile, socket, riderId }) => {
-    const isOnline = profile?.isActive;
-
-    const toggleOnlineStatus = async () => {
-        const newStatus = !isOnline;
-        if (patchProfile) {
-            await patchProfile({ isActive: newStatus });
-        }
-        if (socket) {
-            socket.emit('rider:status', { riderId, isOnline: newStatus });
-        }
-    };
+export const Header = ({ profile, isOnline, onToggleOnline, toggling }) => {
+    const online = Boolean(isOnline);
 
     return (
         <View style={styles.header}>
@@ -39,10 +29,14 @@ export const Header = ({ profile, patchProfile, socket, riderId }) => {
                 <View style={styles.profileSection}>
                     <TouchableOpacity style={styles.avatarWrapper}>
                         <Image
-                            source={{ uri: profile?.avatar || 'https://via.placeholder.com/150' }}
+                            source={
+                                profile?.profileImage
+                                    ? { uri: profile.profileImage }
+                                    : require('../../assets/doot.png')
+                            }
                             style={styles.profileImage}
                         />
-                        <View style={[styles.statusDot, isOnline ? styles.onlineDot : styles.offlineDot]} />
+                        <View style={[styles.statusDot, online ? styles.onlineDot : styles.offlineDot]} />
                     </TouchableOpacity>
                     
                     <View style={styles.identity}>
@@ -66,30 +60,28 @@ export const Header = ({ profile, patchProfile, socket, riderId }) => {
             </View>
 
             {/* Duty Command Console */}
-            <View style={[styles.dutyToggle, isOnline ? styles.dutyActive : styles.dutyInactive]}>
+            <View style={[styles.dutyToggle, online ? styles.dutyActive : styles.dutyInactive]}>
                 <View style={styles.dutyLeft}>
                     <View style={styles.labelContainer}>
                         <Text style={styles.statusLabel}>SYSTEM STATUS</Text>
                         <View style={styles.pulseContainer}>
-                            {isOnline && <View style={styles.ping} />}
-                            <View style={[styles.indicator, isOnline ? styles.bgOnline : styles.bgOffline]} />
+                            {online && <View style={styles.ping} />}
+                            <View style={[styles.indicator, online ? styles.bgOnline : styles.bgOffline]} />
                         </View>
                     </View>
                     <Text style={styles.statusMainText}>
-                        {isOnline ? 'ONLINE & TRANSMITTING' : 'OFFLINE / STATIONED'}
+                        {online ? 'ONLINE & TRANSMITTING' : 'OFFLINE / STATIONED'}
                     </Text>
                 </View>
 
-                <Switch
-                    value={isOnline}
-                    onValueChange={toggleOnlineStatus}
-                    trackColor={{ false: '#d2b48c', true: '#d3ebd8' }}
-                    thumbColor={isOnline ? COLORS.accent : '#a68b66'}
-                    ios_backgroundColor="#d2b48c"
+                <OnlineToggle
+                    value={online}
+                    onToggle={onToggleOnline}
+                    disabled={toggling}
                 />
             </View>
             
-            {isOnline && (
+            {online && (
                 <View style={styles.sessionInfo}>
                     <Icon name="clock-outline" size={12} color={COLORS.muted} />
                     <Text style={styles.sessionTime}>SESSION: {profile?.onlineTime || "00:00"} HRS</Text>

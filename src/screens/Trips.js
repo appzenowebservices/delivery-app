@@ -7,19 +7,20 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  Platform
+  ActivityIndicator
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Changed to Community for consistency
 import { baseURL } from '../config';
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Import local components
 import IncomingRideRequestCard from '../components/rides/IncomingRequest';
 import TripCard from '../components/rides/TripCard';
 import { EmptyState } from '../components/rides/EmptyState';
 import { FilterPanel } from '../components/rides/FilterPanel';
+import { BottomNav } from '../components/layout/BottomNav';
 import { getProfile } from '../api/profile';
 
 // Industrial Palette System
@@ -34,12 +35,12 @@ const COLORS = {
 };
 
 const TripsScreen = ({ route }) => {
-  const navigation = useNavigation();
   const { orderId } = route.params || {};
   
   const [showIncomingRide, setShowIncomingRide] = useState(false);
   const [incomingRide, setIncomingRide] = useState(null);
-  const [loading, setLoading] = useState(!!orderId);
+  const [loading, setLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(false);
   const [activeTab, setActiveTab] = useState('current');
   const [filterOpen, setFilterOpen] = useState(false);
   const [dpAcceptedTrip, setDpAcceptedTrip] = useState([]);
@@ -66,6 +67,8 @@ const TripsScreen = ({ route }) => {
       const userId = profileRes?.data?.user?.id;
       if (!userId) throw new Error("User not found");
 
+      setIsOnline(Boolean(profileRes?.data?.user?.isOnline));
+
       const res = await axios.get(`${baseURL}/api/v1/delivery-partner/trip`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -89,6 +92,9 @@ const TripsScreen = ({ route }) => {
     }, [])
   );
 
+  const hasTrips = dpAcceptedTrip.length > 0 || tripHistory.length > 0;
+  const activeItems = activeTab === 'current' ? dpAcceptedTrip : tripHistory;
+
   return (
     <View style={styles.mainWrapper}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.bg} />
@@ -101,12 +107,14 @@ const TripsScreen = ({ route }) => {
             <Text style={styles.headerTitle}>Trip Registry</Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.headerIconButton} 
-              onPress={() => setFilterOpen(!filterOpen)}
-            >
-              <Icon name="tune-variant" size={22} color={COLORS.dark} />
-            </TouchableOpacity>
+            {hasTrips && (
+              <TouchableOpacity 
+                style={styles.headerIconButton} 
+                onPress={() => setFilterOpen(!filterOpen)}
+              >
+                <Icon name="tune-variant" size={22} color={COLORS.dark} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -133,7 +141,7 @@ const TripsScreen = ({ route }) => {
           </TouchableOpacity>
         </View>
 
-        <FilterPanel filterOpen={filterOpen} setFilterOpen={setFilterOpen} />
+        {hasTrips && <FilterPanel filterOpen={filterOpen} setFilterOpen={setFilterOpen} />}
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {activeTab === "current" && showIncomingRide && incomingRide && (
@@ -151,46 +159,46 @@ const TripsScreen = ({ route }) => {
             />
           )}
 
-          <View style={styles.sectionHeader}>
-            <Icon name="format-list-bulleted-type" size={14} color={COLORS.muted} />
-            <Text style={styles.sectionTitle}>
-              {activeTab === "current" ? 'CURRENT ASSIGNMENTS' : 'HISTORICAL DATA'}
-            </Text>
-          </View>
-
-          {activeTab === "current" ? (
-            <View>
-              {dpAcceptedTrip?.length > 0 ? (
-                dpAcceptedTrip.map(trip => <TripCard key={trip.id} trip={trip} />)
-              ) : (
-                <EmptyState />
-              )}
+          {loading ? (
+            <View style={styles.loadingWrap}>
+              <ActivityIndicator color={COLORS.dark} />
+              <Text style={styles.loadingText}>SYNCING MANIFEST...</Text>
             </View>
           ) : (
-            <View>
-              {tripHistory?.map(trip => <TripCard key={trip.id} trip={trip} />)}
-            </View>
+            <>
+              {activeItems.length > 0 && (
+                <View style={styles.sectionHeader}>
+                  <Icon name="format-list-bulleted-type" size={14} color={COLORS.muted} />
+                  <Text style={styles.sectionTitle}>
+                    {activeTab === "current" ? 'CURRENT ASSIGNMENTS' : 'HISTORICAL DATA'}
+                  </Text>
+                </View>
+              )}
+
+              {activeTab === "current" ? (
+                dpAcceptedTrip.length > 0 ? (
+                  dpAcceptedTrip.map(trip => <TripCard key={trip.id} trip={trip} />)
+                ) : (
+                  <EmptyState variant="active" isOnline={isOnline} />
+                )
+              ) : (
+                tripHistory.length > 0 ? (
+                  tripHistory.map(trip => <TripCard key={trip.id} trip={trip} />)
+                ) : (
+                  <EmptyState variant="archive" />
+                )
+              )}
+            </>
           )}
           <View style={{ height: 120 }} />
         </ScrollView>
 
-        {/* TACTILE BOTTOM NAVIGATION */}
-        <View style={styles.bottomNav}>
-          <NavButton label="EARNINGS" icon="chart-box-outline" onPress={() => navigation.navigate('Earnings')} />
-          <NavButton label="LOGS" icon="truck-delivery" active />
-          <NavButton label="PROFILE" icon="account-circle-outline" onPress={() => navigation.navigate('Profile')} />
-        </View>
+        {/* SHARED BOTTOM NAVIGATION */}
+        <BottomNav active="Trips" />
       </SafeAreaView>
     </View>
   );
 };
-
-const NavButton = ({ label, icon, active, onPress }) => (
-  <TouchableOpacity onPress={onPress} style={styles.navItem}>
-    <Icon name={icon} size={24} color={active ? COLORS.dark : COLORS.muted} />
-    <Text style={[styles.navLabel, active && styles.activeNavLabel]}>{label}</Text>
-  </TouchableOpacity>
-);
 
 const styles = StyleSheet.create({
   mainWrapper: { flex: 1, backgroundColor: COLORS.bg },
@@ -262,6 +270,18 @@ const styles = StyleSheet.create({
   inactiveBadge: { backgroundColor: COLORS.border },
   badgeText: { fontSize: 10, fontWeight: '900', color: COLORS.bg },
   content: { flex: 1, paddingHorizontal: 20, paddingTop: 25 },
+  loadingWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: COLORS.muted,
+    letterSpacing: 1.5,
+  },
   sectionHeader: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -274,27 +294,6 @@ const styles = StyleSheet.create({
     color: COLORS.muted, 
     letterSpacing: 1 
   },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    backgroundColor: COLORS.bg,
-    paddingBottom: Platform.OS === 'ios' ? 30 : 15,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    justifyContent: 'space-around',
-  },
-  navItem: { alignItems: 'center', gap: 4 },
-  navLabel: { 
-    fontSize: 9, 
-    color: COLORS.muted, 
-    fontWeight: '900', 
-    letterSpacing: 0.5 
-  },
-  activeNavLabel: { color: COLORS.dark },
 });
 
 export default TripsScreen;

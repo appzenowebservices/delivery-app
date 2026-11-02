@@ -35,8 +35,11 @@ const MapScreen = () => {
     const navigation = useNavigation();
     const { trip } = route?.params || {};
     const tripId = trip?.tripId || trip?.id;
+    const isTripActive = Boolean(trip?.status) && !['delivered', 'cancelled'].includes(trip?.status);
 
     const [mapExpanded, setMapExpanded] = useState(false);
+    const [riderLocation, setRiderLocation] = useState(null);
+    const [recenterSignal, setRecenterSignal] = useState(0);
 
     // Animations
     const cardTranslateY = useRef(new Animated.Value(height * 0.4)).current;
@@ -53,7 +56,7 @@ const MapScreen = () => {
                 useNativeDriver: true
             })
         ]).start();
-    }, []);
+    }, [cardTranslateY, fadeAnim]);
 
     const toggleExpansion = useCallback(() => {
         const toValue = mapExpanded ? 0 : height * 0.42;
@@ -72,12 +75,12 @@ const MapScreen = () => {
         ]).start();
 
         setMapExpanded(!mapExpanded);
-    }, [mapExpanded]);
+    }, [mapExpanded, cardTranslateY, mapScale]);
 
     useFocusEffect(
         useCallback(() => {
             if (tripId) {
-                startForegroundLocation(tripId).catch((error) => {
+                startForegroundLocation(tripId, setRiderLocation).catch((error) => {
                     console.error('[MapScreen] startForegroundLocation failed:', error?.message || error);
                 });
             }
@@ -99,6 +102,8 @@ const MapScreen = () => {
                 <LeafletMapComponent
                     pickupGeo={{ latitude: trip?.pickupLocation?.lat, longitude: trip?.pickupLocation?.lng }}
                     dropoffGeo={{ latitude: trip?.dropoffLocation?.lat, longitude: trip?.dropoffLocation?.lng }}
+                    currentLocation={riderLocation ? { latitude: riderLocation.lat, longitude: riderLocation.lng } : null}
+                    recenterSignal={recenterSignal}
                     onRouteFound={() => { }}
                 />
             </Animated.View>
@@ -111,15 +116,24 @@ const MapScreen = () => {
                     </TouchableOpacity>
 
                     <View style={styles.statusBadge}>
-                        <View style={[styles.pulseDot, { backgroundColor: trip?.status === "active" ? COLORS.accent : COLORS.warning }]} />
+                        <View style={[styles.pulseDot, { backgroundColor: isTripActive ? COLORS.accent : COLORS.warning }]} />
                         <Text style={styles.statusTitle}>
-                            {trip?.status === "active" ? "MISSION ACTIVE" : "SYSTEM READY"}
+                            {isTripActive ? "MISSION ACTIVE" : "SYSTEM READY"}
                         </Text>
                     </View>
 
-                    <TouchableOpacity style={styles.utilityBtn} onPress={toggleExpansion}>
-                        <Icon name={mapExpanded ? "chevron-down" : "chevron-up"} size={24} color={COLORS.dark} />
-                    </TouchableOpacity>
+                    <View style={styles.headerActions}>
+                        <TouchableOpacity
+                            style={styles.utilityBtn}
+                            onPress={() => setRecenterSignal((value) => value + 1)}
+                        >
+                            <Icon name="crosshairs-gps" size={22} color={COLORS.dark} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity style={styles.utilityBtn} onPress={toggleExpansion}>
+                            <Icon name={mapExpanded ? "chevron-down" : "chevron-up"} size={24} color={COLORS.dark} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </SafeAreaView>
 
@@ -133,7 +147,7 @@ const MapScreen = () => {
                 {/* Drag Handle & Label */}
                 <TouchableOpacity onPress={toggleExpansion} activeOpacity={1} style={styles.sheetHandleArea}>
                     <View style={styles.handleBar} />
-                    <Text style={styles.manifestLabel}>OPERATIONAL MANIFEST — {trip?.id?.toString().slice(-6).toUpperCase()}</Text>
+                    <Text style={styles.manifestLabel}>OPERATIONAL MANIFEST — {(trip?.tripId || trip?.id)?.toString().slice(-6).toUpperCase()}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.cardContent}>
@@ -174,6 +188,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
+    },
+    headerActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
     },
     utilityBtn: {
         width: 44,
