@@ -159,6 +159,7 @@ const MapScreen = () => {
                     <TripDetailsCard trip={activeTrip}>
                         <TripActionPanel
                             trip={activeTrip}
+                            currentLocation={riderLocation ? { lat: riderLocation.lat, lng: riderLocation.lng } : null}
                             onTripStatusUpdate={(nextStatus) => {
                                 if (!nextStatus) return;
                                 setActiveTrip((prev) => ({ ...prev, status: nextStatus }));

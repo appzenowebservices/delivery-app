@@ -3,9 +3,12 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
+  TouchableOpacity,
+  ActivityIndicator,
   Alert,
   StyleSheet,
   Vibration,
+  Linking,
 } from "react-native";
 import Geolocation from '@react-native-community/geolocation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -39,39 +42,65 @@ const haversineDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) => {
-  const [internalLocation, setInternalLocation] = useState(null);
+const TripActionPanel = ({ trip, currentLocation, onTripStatusUpdate, onStopLocationTracking }) => {
+  const [internalLocation, setInternalLocation] = useState(currentLocation || null);
+  const [gpsState, setGpsState] = useState(currentLocation ? 'ready' : 'locating');
+  const [inlineError, setInlineError] = useState('');
   const [isActionLoading, setIsActionLoading] = useState(false);
   const watchId = useRef(null);
 
   useEffect(() => {
-    Geolocation.getCurrentPosition(
-      (pos) => setInternalLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      (err) => console.log('Location Error:', err),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-    );
+    const handlePosition = (pos) => {
+      setInternalLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      setGpsState('ready');
+      setInlineError('');
+    };
 
-    watchId.current = Geolocation.watchPosition(
-      (pos) => setInternalLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      (err) => console.log('Watch Error:', err),
-      { enableHighAccuracy: true, distanceFilter: 10 }
-    );
+    const handleError = (err) => {
+      console.log('Location Error:', err);
+      setGpsState((prev) => (prev === 'ready' ? prev : err?.code === 1 ? 'denied' : 'weak'));
+    };
+
+    Geolocation.getCurrentPosition(handlePosition, handleError, {
+      enableHighAccuracy: true,
+      timeout: 20000,
+      maximumAge: 1000,
+    });
+
+    watchId.current = Geolocation.watchPosition(handlePosition, handleError, {
+      enableHighAccuracy: true,
+      distanceFilter: 10,
+    });
 
     return () => watchId.current !== null && Geolocation.clearWatch(watchId.current);
   }, []);
 
+  useEffect(() => {
+    if (currentLocation && !internalLocation) {
+      setInternalLocation(currentLocation);
+      setGpsState('ready');
+    }
+  }, [currentLocation, internalLocation]);
+
   const handleAction = useCallback(async (actionType) => {
-    if (!trip?.tripId || !internalLocation) {
-      Alert.alert("GPS ERROR", "Awaiting satellite lock for verification.");
+    const location = internalLocation || currentLocation;
+
+    if (!trip?.tripId || !location) {
+      setInlineError(
+        gpsState === 'denied'
+          ? 'Location permission is required to update the trip. Enable it in Settings.'
+          : 'Waiting for a GPS lock. Move to an open area and try again.'
+      );
       return false;
     }
 
+    setInlineError('');
     Vibration.vibrate(50); // Haptic feedback for industrial feel
     setIsActionLoading(true);
     try {
       const payload = {
         tripId: trip.tripId,
-        location: { lat: internalLocation.lat, lng: internalLocation.lng },
+        location: { lat: location.lat, lng: location.lng },
       };
 
       let response;
@@ -100,7 +129,7 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
     } finally {
       setIsActionLoading(false);
     }
-  }, [trip, internalLocation, onTripStatusUpdate, onStopLocationTracking]);
+  }, [trip, internalLocation, currentLocation, gpsState, onTripStatusUpdate, onStopLocationTracking]);
 
   const renderContent = () => {
     const pLoc = trip?.pickupLocation;
@@ -123,6 +152,7 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
             icon="map-marker-check"
             accentColor={COLORS.accent}
             loading={isActionLoading}
+            disabled={gpsState !== 'ready'}
             onComplete={() => handleAction("mark_arrival")}
           />
         ) : (
@@ -143,6 +173,7 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
             icon="package-variant-closed"
             accentColor={COLORS.warning}
             loading={isActionLoading}
+            disabled={gpsState !== 'ready'}
             onComplete={() => handleAction("mark_picked")}
           />
         );
@@ -155,6 +186,7 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
             icon="check-decagram"
             accentColor={COLORS.accent}
             loading={isActionLoading}
+            disabled={gpsState !== 'ready'}
             onComplete={() => handleAction("mark_delivered")}
           />
         ) : (
@@ -180,11 +212,69 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
     }
   };
 
-  return <View style={styles.container}>{renderContent()}</View>;
+  return (
+    <View style={styles.container}>
+      {gpsState !== 'ready' && (
+        <View style={styles.gpsBar}>
+          {gpsState === 'denied' ? (
+            <Icon name="map-marker-off-outline" size={16} color={COLORS.warning} />
+          ) : (
+            <ActivityIndicator size="small" color={COLORS.muted} />
+          )}
+          <Text style={styles.gpsText}>
+            {gpsState === 'denied'
+              ? 'LOCATION PERMISSION REQUIRED'
+              : 'ACQUIRING GPS LOCK…'}
+          </Text>
+          {gpsState === 'denied' && (
+            <TouchableOpacity onPress={() => Linking.openSettings()}>
+              <Text style={styles.gpsAction}>OPEN SETTINGS</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {!!inlineError && <Text style={styles.inlineError}>{inlineError}</Text>}
+
+      {renderContent()}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
   container: { width: '100%', paddingVertical: 10 },
+  gpsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#fdf6e4',
+    borderWidth: 1,
+    borderColor: '#faedcc',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  gpsText: {
+    flex: 1,
+    fontSize: 8,
+    fontWeight: '900',
+    color: '#8a6420',
+    letterSpacing: 0.8,
+  },
+  gpsAction: {
+    fontSize: 8,
+    fontWeight: '900',
+    color: COLORS.dark,
+    letterSpacing: 0.8,
+  },
+  inlineError: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#d32f2f',
+    marginBottom: 8,
+    lineHeight: 15,
+  },
   statusBox: { 
     alignItems: 'center', 
     backgroundColor: COLORS.bg, 
