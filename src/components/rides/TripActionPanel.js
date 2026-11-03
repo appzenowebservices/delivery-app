@@ -3,8 +3,6 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
-  ActivityIndicator,
   Alert,
   StyleSheet,
   Vibration,
@@ -16,12 +14,12 @@ import {
   markedPickupArrival,
   markedPickupedUp,
 } from "../../api/trips";
+import SlideToAccept from "./SlideToAccept";
 
 const COLORS = {
   dark: '#2d241e',
   muted: '#7d6b5d',
   accent: '#0c831f', // Emerald
-  action: '#2196f3', // Blue
   warning: '#e9c46a', // Amber
   bg: '#fdfbf7',
 };
@@ -65,7 +63,7 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
   const handleAction = useCallback(async (actionType) => {
     if (!trip?.tripId || !internalLocation) {
       Alert.alert("GPS ERROR", "Awaiting satellite lock for verification.");
-      return;
+      return false;
     }
 
     Vibration.vibrate(50); // Haptic feedback for industrial feel
@@ -82,21 +80,29 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
       if (actionType === "mark_delivered") response = await markedDelivered(payload);
 
       if (response?.data?.success) {
+        const nextStatus =
+          actionType === "mark_arrival"
+            ? "arrived_at_pickup"
+            : actionType === "mark_picked"
+              ? "picked_up"
+              : "delivered";
+
         if (actionType === "mark_delivered") onStopLocationTracking?.();
-        onTripStatusUpdate?.(); 
-      } else {
-        Alert.alert("PROTOCOL ERROR", response?.message || "Check system link.");
+        onTripStatusUpdate?.(nextStatus);
+        return true;
       }
+
+      Alert.alert("PROTOCOL ERROR", response?.message || "Check system link.");
+      return false;
     } catch (error) {
       Alert.alert("NETWORK FAILURE", "The telemetry uplink is offline.");
+      return false;
     } finally {
       setIsActionLoading(false);
     }
   }, [trip, internalLocation, onTripStatusUpdate, onStopLocationTracking]);
 
   const renderContent = () => {
-    if (isActionLoading) return <ActivityIndicator color={COLORS.action} size="large" style={{ marginVertical: 10 }} />;
-
     const pLoc = trip?.pickupLocation;
     const dLoc = trip?.dropoffLocation;
 
@@ -111,11 +117,13 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
     switch (trip?.status) {
       case "assigned":
         return distToPickup <= PROXIMITY_THRESHOLD_METERS ? (
-          <IndustrialButton
-            title="CONFIRM ARRIVAL"
+          <SlideToAccept
+            key="confirm-arrival"
+            label="SLIDE TO CONFIRM ARRIVAL"
             icon="map-marker-check"
-            color={COLORS.dark}
-            onPress={() => handleAction("mark_arrival")}
+            accentColor={COLORS.accent}
+            loading={isActionLoading}
+            onComplete={() => handleAction("mark_arrival")}
           />
         ) : (
           <View style={styles.statusBox}>
@@ -129,25 +137,29 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
 
       case "arrived_at_pickup":
         return (
-          <IndustrialButton
-            title="INITIATE LOADING"
+          <SlideToAccept
+            key="start-loading"
+            label="SLIDE TO START LOADING"
             icon="package-variant-closed"
-            color={COLORS.warning}
-            onPress={() => handleAction("mark_picked")}
+            accentColor={COLORS.warning}
+            loading={isActionLoading}
+            onComplete={() => handleAction("mark_picked")}
           />
         );
 
       case "picked_up":
         return distToDropoff <= PROXIMITY_THRESHOLD_METERS ? (
-          <IndustrialButton
-            title="FINALIZE DELIVERY"
+          <SlideToAccept
+            key="finalize-delivery"
+            label="SLIDE TO FINALIZE DELIVERY"
             icon="check-decagram"
-            color={COLORS.accent}
-            onPress={() => handleAction("mark_delivered")}
+            accentColor={COLORS.accent}
+            loading={isActionLoading}
+            onComplete={() => handleAction("mark_delivered")}
           />
         ) : (
           <View style={styles.statusBox}>
-            <Icon name="navigation-variant" size={24} color={COLORS.action} />
+            <Icon name="navigation-variant" size={24} color={COLORS.accent} />
             <Text style={styles.statusMsg}>CARGO IN TRANSIT</Text>
             <Text style={styles.distanceLabel}>
               {distToDropoff > 1000 ? `${(distToDropoff / 1000).toFixed(1)} KM` : `${Math.round(distToDropoff)} M`} TO DESTINATION
@@ -170,18 +182,6 @@ const TripActionPanel = ({ trip, onTripStatusUpdate, onStopLocationTracking }) =
 
   return <View style={styles.container}>{renderContent()}</View>;
 };
-
-const IndustrialButton = ({ title, icon, color, onPress }) => (
-  <TouchableOpacity
-    style={[styles.btn, { backgroundColor: color }]}
-    onPress={onPress}
-    activeOpacity={0.8}
-  >
-    <Icon name={icon} size={20} color="#fff" style={{ marginRight: 12 }} />
-    <Text style={styles.btnText}>{title}</Text>
-    <Icon name="chevron-right" size={20} color="rgba(255,255,255,0.5)" style={{ marginLeft: 'auto' }} />
-  </TouchableOpacity>
-);
 
 const styles = StyleSheet.create({
   container: { width: '100%', paddingVertical: 10 },
@@ -221,25 +221,6 @@ const styles = StyleSheet.create({
     color: COLORS.accent,
     fontWeight: '900',
     fontSize: 12,
-    letterSpacing: 1,
-  },
-  btn: {
-    width: '100%',
-    height: 56,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4
-  },
-  btnText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '900',
     letterSpacing: 1,
   },
 });

@@ -25,6 +25,8 @@ export default function SlideToAccept({
   disabled = false,
   loading = false,
   label = 'SLIDE TO ACCEPT RIDE',
+  icon = 'chevron-double-right',
+  accentColor = COLORS.fill,
 }) {
   const [travel, setTravel] = useState(0);
   const pos = useRef(new Animated.Value(0)).current;
@@ -111,7 +113,7 @@ export default function SlideToAccept({
       }}
       {...responder.panHandlers}
     >
-      <Animated.View style={[styles.fill, { width: fillWidth }]} />
+      <Animated.View style={[styles.fill, { width: fillWidth, backgroundColor: accentColor }]} />
 
       <Animated.Text style={[styles.label, { opacity: labelOpacity }]}>
         {label}
@@ -119,9 +121,9 @@ export default function SlideToAccept({
 
       <Animated.View style={[styles.thumb, { transform: [{ translateX: pos }] }]}>
         {loading ? (
-          <ActivityIndicator size="small" color={COLORS.fill} />
+          <ActivityIndicator size="small" color={accentColor} />
         ) : (
-          <Icon name="chevron-double-right" size={22} color={COLORS.fill} />
+          <Icon name={icon} size={22} color={accentColor} />
         )}
       </Animated.View>
     </View>
@@ -145,15 +147,14 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: COLORS.fill,
     opacity: 0.35,
   },
   label: {
     alignSelf: 'center',
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '900',
     color: COLORS.text,
-    letterSpacing: 1.4,
+    letterSpacing: 1.1,
   },
   thumb: {
     position: 'absolute',

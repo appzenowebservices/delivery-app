@@ -34,8 +34,13 @@ const MapScreen = () => {
     const route = useRoute();
     const navigation = useNavigation();
     const { trip } = route?.params || {};
-    const tripId = trip?.tripId || trip?.id;
-    const isTripActive = Boolean(trip?.status) && !['delivered', 'cancelled'].includes(trip?.status);
+    const [activeTrip, setActiveTrip] = useState(trip);
+    const tripId = activeTrip?.tripId || activeTrip?.id;
+    const isTripActive = Boolean(activeTrip?.status) && !['delivered', 'cancelled'].includes(activeTrip?.status);
+
+    useEffect(() => {
+        setActiveTrip(trip);
+    }, [trip]);
 
     const [mapExpanded, setMapExpanded] = useState(false);
     const [riderLocation, setRiderLocation] = useState(null);
@@ -147,14 +152,17 @@ const MapScreen = () => {
                 {/* Drag Handle & Label */}
                 <TouchableOpacity onPress={toggleExpansion} activeOpacity={1} style={styles.sheetHandleArea}>
                     <View style={styles.handleBar} />
-                    <Text style={styles.manifestLabel}>OPERATIONAL MANIFEST — {(trip?.tripId || trip?.id)?.toString().slice(-6).toUpperCase()}</Text>
+                    <Text style={styles.manifestLabel}>OPERATIONAL MANIFEST — {(activeTrip?.tripId || activeTrip?.id)?.toString().slice(-6).toUpperCase()}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.cardContent}>
-                    <TripDetailsCard trip={trip}>
+                    <TripDetailsCard trip={activeTrip}>
                         <TripActionPanel
-                            trip={trip}
-                            onTripStatusUpdate={() => { }}
+                            trip={activeTrip}
+                            onTripStatusUpdate={(nextStatus) => {
+                                if (!nextStatus) return;
+                                setActiveTrip((prev) => ({ ...prev, status: nextStatus }));
+                            }}
                         />
                     </TripDetailsCard>
                 </View>
