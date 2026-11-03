@@ -148,7 +148,10 @@ const GlobalIncomingRequest = () => {
 
           const assignedToMe =
             trip.deliveryAgent === user.id && trip.status === 'assigned';
-          const openOffer = !trip.deliveryAgent && trip.status === 'created';
+          const openOffer =
+            !trip.deliveryAgent &&
+            trip.status === 'created' &&
+            trip.orderStatus === 'ready';
 
           return assignedToMe || openOffer;
         });
@@ -157,7 +160,10 @@ const GlobalIncomingRequest = () => {
           userId: user.id,
           isOnline: user.isOnline,
           trips: trips.length,
-          statuses: trips.map((t) => `${t.status}:${t.deliveryAgent ? 'taken' : 'open'}`),
+          statuses: trips.map(
+            (t) =>
+              `${t.status}/${t.orderStatus || '?'}:${t.deliveryAgent ? 'taken' : 'open'}`
+          ),
           pending: pending?.tripId || null,
         });
 
