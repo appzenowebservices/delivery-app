@@ -15,6 +15,7 @@ import MapScreen from "./src/screens/MapScreen";
 import AddressBook from "./src/screens/AddressBook";
 import LoginScreen from "./src/screens/LoginScreen";
 import ProfileSectionScreen from "./src/screens/ProfileSection";
+import GlobalIncomingRequest from "./src/components/rides/GlobalIncomingRequest";
 
 // Utils
 import { navigate, navigationRef } from "./src/utils/navigationService";
@@ -151,6 +152,8 @@ export default function App() {
           />
         </Stack.Navigator>
       )}
+
+      <GlobalIncomingRequest />
     </NavigationContainer>
   );
 }

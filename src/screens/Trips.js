@@ -16,12 +16,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from '@react-navigation/native';
 
 // Import local components
-import IncomingRideRequestCard from '../components/rides/IncomingRequest';
 import TripCard from '../components/rides/TripCard';
 import { EmptyState } from '../components/rides/EmptyState';
 import { FilterPanel } from '../components/rides/FilterPanel';
 import { BottomNav } from '../components/layout/BottomNav';
 import { getProfile } from '../api/profile';
+import { showIncomingRequest } from '../utils/incomingRequestService';
 
 // Industrial Palette System
 const COLORS = {
@@ -36,9 +36,7 @@ const COLORS = {
 
 const TripsScreen = ({ route }) => {
   const { orderId } = route.params || {};
-  
-  const [showIncomingRide, setShowIncomingRide] = useState(false);
-  const [incomingRide, setIncomingRide] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
   const [activeTab, setActiveTab] = useState('current');
@@ -53,8 +51,7 @@ const TripsScreen = ({ route }) => {
         `${baseURL}/api/v1/delivery-partner/trip/order/${orderId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setIncomingRide(res.data.data);
-      setShowIncomingRide(true);
+      showIncomingRequest(res.data.data);
     } catch (err) {
       console.error("Error fetching incoming trip:", err);
     }
@@ -85,7 +82,7 @@ const TripsScreen = ({ route }) => {
   };
 
   useEffect(() => { if (orderId) fetchIncomingTripByOrderId(orderId); }, [orderId]);
-  
+
   useFocusEffect(
     React.useCallback(() => {
       fetchTripDetail().catch(err => console.error(err));
@@ -144,21 +141,6 @@ const TripsScreen = ({ route }) => {
         {hasTrips && <FilterPanel filterOpen={filterOpen} setFilterOpen={setFilterOpen} />}
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {activeTab === "current" && showIncomingRide && incomingRide && (
-            <IncomingRideRequestCard
-              trip={incomingRide}
-              onAccepted={() => {
-                setIncomingRide(null);
-                setShowIncomingRide(false);
-                fetchTripDetail();
-              }}
-              onTimeout={() => {
-                setIncomingRide(null);
-                setShowIncomingRide(false);
-              }}
-            />
-          )}
-
           {loading ? (
             <View style={styles.loadingWrap}>
               <ActivityIndicator color={COLORS.dark} />

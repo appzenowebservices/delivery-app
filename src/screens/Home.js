@@ -8,7 +8,6 @@ import {
   SafeAreaView,
   StatusBar,
   RefreshControl,
-  Vibration,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -21,7 +20,6 @@ import { DashboardStats } from '../components/home/DashboardStats';
 import { ActiveAssignment } from '../components/home/ActiveAssignment';
 import { QuickActions } from '../components/home/quickActions';
 import { BottomNav } from '../components/layout/BottomNav';
-import IncomingRideRequestCard from '../components/rides/IncomingRequest';
 import ToastAlert from '../components/ToastAlert';
 
 const COLORS = {
@@ -92,7 +90,6 @@ const RecentRow = ({ trip, last }) => (
 
 export const RiderCaptainHomeScreen = () => {
   const navigation = useNavigation();
-  const [rideRequests, setRideRequests] = useState([]);
   const [userProfile, setUserProfile] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
   const [togglingOnline, setTogglingOnline] = useState(false);
@@ -143,16 +140,6 @@ export const RiderCaptainHomeScreen = () => {
       loadDashboard();
     }, [loadDashboard])
   );
-
-  useEffect(() => {
-    const onRideRequest = (orderData) => {
-      setRideRequests(orderData);
-      Vibration.vibrate([0, 500, 200, 500]);
-    };
-
-    socket.on('rider:rideRequest', onRideRequest);
-    return () => socket.off('rider:rideRequest', onRideRequest);
-  }, []);
 
   const handleToggleOnline = async () => {
     if (!userProfile?.id) {
@@ -253,15 +240,6 @@ export const RiderCaptainHomeScreen = () => {
             tripsToday={todayTrips.length}
             activeTrips={activeTrips.length}
           />
-
-          {rideRequests.length > 0 && (
-            <View style={styles.section}>
-              <SectionHeader title="INCOMING REQUESTS" badge={rideRequests.length} />
-              {rideRequests.map((trip, index) => (
-                <IncomingRideRequestCard key={trip?.tripId || index} trip={trip} />
-              ))}
-            </View>
-          )}
 
           {activeTrip && (
             <View style={styles.section}>
