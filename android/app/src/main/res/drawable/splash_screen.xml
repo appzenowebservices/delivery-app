@@ -7,6 +7,6 @@
         android:gravity="center">
         <bitmap
             android:gravity="fill"
-            android:src="@drawable/doot_logo" />
+            android:src="@drawable/brand_logo" />
     </item>
 </layer-list>

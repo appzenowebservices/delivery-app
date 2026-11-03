@@ -292,7 +292,7 @@ const ProfileScreen = () => {
       {loggingOut && (
         <Animated.View style={[styles.logoutOverlay, { opacity: logoutAnim }]}>
           <Image
-            source={require('../assets/doot.png')}
+            source={require('../assets/logo.png')}
             style={styles.logoutLogo}
             resizeMode="contain"
           />

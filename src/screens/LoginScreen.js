@@ -126,7 +126,7 @@ export default function CaptainLoginScreen({ navigation }) {
                 <View style={styles.gridOverlay} />
                 <View style={styles.brandBox}>
                     <Image
-                        source={require("../assets/doot.png")}
+                        source={require("../assets/logo.png")}
                         style={styles.brandLogo}
                         resizeMode="contain"
                     />
@@ -208,7 +208,7 @@ export default function CaptainLoginScreen({ navigation }) {
             {success && (
                 <Animated.View style={[styles.successOverlay, { opacity: successAnim }]}>
                     <Image
-                        source={require("../assets/doot.png")}
+                        source={require("../assets/logo.png")}
                         style={styles.successLogo}
                         resizeMode="contain"
                     />

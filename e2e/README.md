@@ -1,4 +1,4 @@
-# ApniRide — Android e2e (Appium)
+# Doot — Android e2e (Appium)
 
 Smoke tests on a real phone over USB — no Android Studio needed.
 

@@ -32,7 +32,7 @@ export const Header = ({ profile, isOnline, onToggleOnline, toggling }) => {
                             source={
                                 profile?.profileImage
                                     ? { uri: profile.profileImage }
-                                    : require('../../assets/doot.png')
+                                    : require('../../assets/logo.png')
                             }
                             style={styles.profileImage}
                         />

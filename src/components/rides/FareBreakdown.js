@@ -1,6 +1,6 @@
 // components/FareBreakdown.js
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 
 const COLORS = {
     dark: '#2d241e',      // Slate 900

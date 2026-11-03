@@ -58,7 +58,7 @@ export async function createCustomSoundChannel() {
 export async function displayCustomNotification({ id, title, body, data = {} }) {
   await notifee.displayNotification({
     id,
-    title: title || 'ApniRide',
+    title: title || 'Doot',
     body: body || '',
     data,
     android: {

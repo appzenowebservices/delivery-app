@@ -88,7 +88,7 @@ export default function App() {
       {initialRoute === null ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#2d241e' }}>
           <Image
-            source={require("./src/assets/doot.png")}
+            source={require("./src/assets/logo.png")}
             style={{ width: 140, height: 140, marginBottom: 24 }}
             resizeMode="contain"
           />
