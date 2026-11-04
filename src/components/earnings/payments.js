@@ -15,7 +15,26 @@ const COLORS = {
 
 const PAYOUT_TYPES = ['payout', 'withdrawal'];
 
-const TripPayments = () => {
+const inPeriod = (value, period) => {
+  if (!value) return period === 'custom';
+  const date = new Date(value);
+  const now = new Date();
+
+  if (period === 'today') return date.toDateString() === now.toDateString();
+  if (period === 'week') {
+    return now.getTime() - date.getTime() <= 7 * 24 * 60 * 60 * 1000;
+  }
+  if (period === 'custom') {
+    return now.getTime() - date.getTime() <= 30 * 24 * 60 * 60 * 1000;
+  }
+
+  return (
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear()
+  );
+};
+
+const TripPayments = ({ selectedPeriod = 'today' }) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +54,10 @@ const TripPayments = () => {
   }, []);
 
   const payouts = transactions.filter(
-    (t) => t.type === 'debit' && PAYOUT_TYPES.includes(t.sourceType)
+    (t) =>
+      t.type === 'debit' &&
+      PAYOUT_TYPES.includes(t.sourceType) &&
+      inPeriod(t.createdAt, selectedPeriod)
   );
 
   const totalPaidOut = payouts.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -44,7 +66,11 @@ const TripPayments = () => {
     .filter((t) => t.type === 'credit')
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
-  const available = Math.max(0, totalEarned - totalPaidOut);
+  const totalPaidOutAll = transactions
+    .filter((t) => t.type === 'debit' && PAYOUT_TYPES.includes(t.sourceType))
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+  const available = Math.max(0, totalEarned - totalPaidOutAll);
 
   const renderPaymentItem = ({ item }) => (
     <View style={styles.paymentCard}>

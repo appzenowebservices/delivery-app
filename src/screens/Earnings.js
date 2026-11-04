@@ -108,9 +108,9 @@ const CaptainEarningsScreen = () => {
 
       {/* Content Area */}
       <View style={styles.content}>
-        {selectedTab === 'overview' && <EarningsOverview period={selectedPeriod} />}
-        {selectedTab === 'trips' && <TripHistory period={selectedPeriod} />}
-        {selectedTab === 'payments' && <TripPayments period={selectedPeriod} />}
+        {selectedTab === 'overview' && <EarningsOverview selectedPeriod={selectedPeriod} />}
+        {selectedTab === 'trips' && <TripHistory selectedPeriod={selectedPeriod} />}
+        {selectedTab === 'payments' && <TripPayments selectedPeriod={selectedPeriod} />}
       </View>
     </SafeAreaView>
   );
