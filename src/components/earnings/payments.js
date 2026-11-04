@@ -5,14 +5,15 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getPayments } from '../../api/transactions';
 
 const COLORS = {
-  dark: '#2d241e',      // Slate 900
-  muted: '#7d6b5d',     // Slate 500
-  accent: '#0c831f',    // Emerald 500
-  bg: '#fdfbf7',        // Slate 50
+  dark: '#2d241e',
+  muted: '#7d6b5d',
+  accent: '#0c831f',
+  bg: '#fdfbf7',
   surface: '#FFFFFF',
   border: '#e9d8bf',
-  indigo: '#4a5d23',    // For "Processing" states
 };
+
+const PAYOUT_TYPES = ['payout', 'withdrawal'];
 
 const TripPayments = () => {
   const [transactions, setTransactions] = useState([]);
@@ -33,55 +34,65 @@ const TripPayments = () => {
     fetchPayments();
   }, []);
 
-  const nextPayout = transactions
-    .filter((t) => t.paymentStatus === 'completed')
-    .reduce((sum, t) => sum + (t.amount || 0), 0)
-    .toFixed(2);
+  const payouts = transactions.filter(
+    (t) => t.type === 'debit' && PAYOUT_TYPES.includes(t.sourceType)
+  );
 
-  const renderPaymentItem = ({ item }) => {
-    const isCompleted = item.paymentStatus === 'completed';
+  const totalPaidOut = payouts.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
-    return (
-      <View style={styles.paymentCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.refBadge}>
-            <Text style={styles.refText}>REF_{item.id.toString().slice(-6).toUpperCase()}</Text>
+  const totalEarned = transactions
+    .filter((t) => t.type === 'credit')
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+
+  const available = Math.max(0, totalEarned - totalPaidOut);
+
+  const renderPaymentItem = ({ item }) => (
+    <View style={styles.paymentCard}>
+      <View style={styles.cardHeader}>
+        <View style={styles.refBadge}>
+          <Text style={styles.refText}>
+            REF_{item.id.toString().slice(-6).toUpperCase()}
+          </Text>
+        </View>
+        <Text style={styles.methodText}>
+          {item.sourceType === 'withdrawal' ? 'WITHDRAWAL' : 'ADMIN PAYOUT'}
+        </Text>
+      </View>
+
+      <View style={styles.cardBody}>
+        <View style={styles.infoCol}>
+          <Text style={styles.dateText}>
+            {new Date(item.createdAt)
+              .toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              })
+              .toUpperCase()}
+          </Text>
+          <View style={styles.bankRow}>
+            <Icon name="bank-outline" size={12} color={COLORS.muted} />
+            <Text style={styles.bankText}>PRIMARY SETTLEMENT ACC</Text>
           </View>
-          <Text style={styles.methodText}>NEFT / RTGS TRANSFER</Text>
         </View>
 
-        <View style={styles.cardBody}>
-          <View style={styles.infoCol}>
-            <Text style={styles.dateText}>
-              {new Date(item.createdAt).toLocaleDateString('en-GB', {
-                day: '2-digit', month: 'short', year: 'numeric'
-              }).toUpperCase()}
+        <View style={styles.amountCol}>
+          <Text style={styles.amountText}>
+            ₹{Number(item.amount || 0).toLocaleString('en-IN')}
+          </Text>
+          <View style={[styles.statusPill, styles.statusSuccess]}>
+            <View style={[styles.dot, { backgroundColor: COLORS.accent }]} />
+            <Text style={[styles.statusText, { color: COLORS.accent }]}>
+              SETTLED
             </Text>
-            <View style={styles.bankRow}>
-              <Icon name="bank-outline" size={12} color={COLORS.muted} />
-              <Text style={styles.bankText}>PRIMARY SETTLEMENT ACC</Text>
-            </View>
-          </View>
-
-          <View style={styles.amountCol}>
-            <Text style={styles.amountText}>₹{item.amount.toLocaleString('en-IN')}</Text>
-            <View style={[
-              styles.statusPill, 
-              isCompleted ? styles.statusSuccess : styles.statusProcess
-            ]}>
-              <View style={[styles.dot, { backgroundColor: isCompleted ? COLORS.accent : COLORS.indigo }]} />
-              <Text style={[styles.statusText, { color: isCompleted ? COLORS.accent : COLORS.indigo }]}>
-                {isCompleted ? 'SETTLED' : 'PROCESSING'}
-              </Text>
-            </View>
           </View>
         </View>
       </View>
-    );
-  };
+    </View>
+  );
 
   if (loading) {
-    return <ActivityIndicator style={{marginTop: 50}} color={COLORS.dark} />;
+    return <ActivityIndicator style={{ marginTop: 50 }} color={COLORS.dark} />;
   }
 
   return (
@@ -90,23 +101,27 @@ const TripPayments = () => {
       <View style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
           <Icon name="shield-check" size={16} color="rgba(255,255,255,0.6)" />
-          <Text style={styles.summaryLabel}>TOTAL REVENUE CLEARANCE</Text>
+          <Text style={styles.summaryLabel}>AVAILABLE FOR PAYOUT</Text>
         </View>
 
-        <Text style={styles.payoutAmount}>₹{parseFloat(nextPayout).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+        <Text style={styles.payoutAmount}>
+          ₹{available.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        </Text>
 
         <View style={styles.disbursementBox}>
-          <Text style={styles.disbursementText}>NEXT DISBURSEMENT CYCLE: JAN 22, 2026</Text>
+          <Text style={styles.disbursementText}>
+            TOTAL PAID OUT: ₹{totalPaidOut.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          </Text>
         </View>
       </View>
 
       <View style={styles.historyHeader}>
-        <Text style={styles.sectionTitle}>PAYMENT LOGS</Text>
+        <Text style={styles.sectionTitle}>PAYOUT LOG</Text>
         <View style={styles.titleDivider} />
       </View>
 
       <FlatList
-        data={transactions}
+        data={payouts}
         renderItem={renderPaymentItem}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
@@ -114,7 +129,7 @@ const TripPayments = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Icon name="cash-off" size={40} color={COLORS.border} />
-            <Text style={styles.emptyText}>NO TRANSACTION HISTORY</Text>
+            <Text style={styles.emptyText}>NO PAYOUTS YET</Text>
           </View>
         }
       />
@@ -172,7 +187,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 10, fontWeight: '900', color: COLORS.muted, letterSpacing: 1 },
   titleDivider: { flex: 1, height: 1, backgroundColor: COLORS.border, marginLeft: 12 },
-  
+
   paymentCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 12,
@@ -195,12 +210,12 @@ const styles = StyleSheet.create({
   refBadge: { backgroundColor: COLORS.dark, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   refText: { color: '#FFF', fontSize: 8, fontWeight: '900', fontFamily: 'monospace' },
   methodText: { fontSize: 8, fontWeight: '800', color: COLORS.muted },
-  
+
   cardBody: { flexDirection: 'row', justifyContent: 'space-between', padding: 15 },
   dateText: { fontSize: 13, fontWeight: '800', color: COLORS.dark },
   bankRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   bankText: { fontSize: 9, color: COLORS.muted, fontWeight: '700' },
-  
+
   amountCol: { alignItems: 'flex-end' },
   amountText: { fontSize: 18, fontWeight: '900', color: COLORS.dark },
   statusPill: {
@@ -214,10 +229,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statusSuccess: { borderColor: COLORS.accent, backgroundColor: COLORS.accent + '10' },
-  statusProcess: { borderColor: COLORS.indigo, backgroundColor: COLORS.indigo + '10' },
   dot: { width: 4, height: 4, borderRadius: 2 },
   statusText: { fontSize: 9, fontWeight: '900' },
-  
+
   listPadding: { paddingBottom: 30 },
   emptyContainer: { alignItems: 'center', marginTop: 40, opacity: 0.5 },
   emptyText: { fontSize: 10, fontWeight: '900', color: COLORS.muted, marginTop: 10 },

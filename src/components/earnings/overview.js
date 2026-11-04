@@ -43,17 +43,22 @@ const EarningsOverview = ({ selectedPeriod = 'today' }) => {
     });
 
     let t = selectedPeriod === 'today' ? filterToday() : selectedPeriod === 'week' ? filterWeek() : filterMonth();
-    const completed = t.filter(x => x?.trip?.status === 'delivered' || x?.trip?.status === 'completed');
-    const totalEarnings = completed.reduce((s, x) => s + (x.amount || 0), 0);
-    const commission = -(totalEarnings * 0.1);
-    const netEarnings = totalEarnings + commission;
+
+    const credits = t.filter(x => x.type === 'credit');
+    const payouts = t.filter(
+      x => x.type === 'debit' && ['payout', 'withdrawal'].includes(x.sourceType)
+    );
+
+    const totalEarnings = credits.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+    const paidOut = payouts.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+    const rides = credits.length;
 
     return {
       totalEarnings,
-      rides: completed.length,
-      hours: (completed.length * 0.4).toFixed(1),
-      commission,
-      netEarnings,
+      paidOut,
+      netBalance: Math.max(0, totalEarnings - paidOut),
+      rides,
+      hours: (rides * 0.4).toFixed(1),
     };
   };
 
@@ -65,12 +70,12 @@ const EarningsOverview = ({ selectedPeriod = 'today' }) => {
       <View style={styles.heroCard}>
         <View style={styles.heroTop}>
           <View>
-            <Text style={styles.heroLabel}>TOTAL SETTLEMENT</Text>
-            <Text style={styles.heroValue}>₹{data.netEarnings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+            <Text style={styles.heroLabel}>TOTAL EARNINGS</Text>
+            <Text style={styles.heroValue}>₹{data.totalEarnings.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
           </View>
           <View style={styles.trendBadge}>
-            <Icon name="trending-up" size={14} color={COLORS.accent} />
-            <Text style={styles.trendText}>+12%</Text>
+            <Icon name="cash-check" size={14} color={COLORS.accent} />
+            <Text style={styles.trendText}>PAID ₹{data.paidOut.toFixed(0)}</Text>
           </View>
         </View>
 
@@ -85,15 +90,14 @@ const EarningsOverview = ({ selectedPeriod = 'today' }) => {
       <View style={styles.section}>
         <Text style={styles.sectionHeader}>TRANSACTION AUDIT</Text>
         <View style={styles.auditBox}>
-          <AuditRow label="Gross Trip Revenue" value={data.totalEarnings} color={COLORS.dark} />
-          <AuditRow label="Incentives & Tips" value={0} color={COLORS.accent} prefix="+" />
-          <AuditRow label="Platform Fee (10%)" value={data.commission} color={COLORS.error} />
+          <AuditRow label="Trip Earnings" value={data.totalEarnings} color={COLORS.dark} />
+          <AuditRow label="Admin Payouts" value={-data.paidOut} color={COLORS.error} />
           
           <View style={styles.divider} />
           
           <View style={styles.netRow}>
-            <Text style={styles.netLabel}>NET PAYOUT</Text>
-            <Text style={styles.netValue}>₹{data.netEarnings.toFixed(2)}</Text>
+            <Text style={styles.netLabel}>NET BALANCE</Text>
+            <Text style={styles.netValue}>₹{data.netBalance.toFixed(2)}</Text>
           </View>
         </View>
         
