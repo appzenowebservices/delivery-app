@@ -159,13 +159,17 @@ const TripsScreen = ({ route }) => {
 
               {activeTab === "current" ? (
                 dpAcceptedTrip.length > 0 ? (
-                  dpAcceptedTrip.map(trip => <TripCard key={trip.id} trip={trip} />)
+                  dpAcceptedTrip.map((trip, index) => (
+                    <TripCard key={trip.tripId || trip.id || `active-${index}`} trip={trip} />
+                  ))
                 ) : (
                   <EmptyState variant="active" isOnline={isOnline} />
                 )
               ) : (
                 tripHistory.length > 0 ? (
-                  tripHistory.map(trip => <TripCard key={trip.id} trip={trip} />)
+                  tripHistory.map((trip, index) => (
+                    <TripCard key={trip.tripId || trip.id || `history-${index}`} trip={trip} />
+                  ))
                 ) : (
                   <EmptyState variant="archive" />
                 )
