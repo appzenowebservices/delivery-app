@@ -15,6 +15,7 @@ import { BlurView } from '@sbaiahmed1/react-native-blur';
 import LeafletMapComponent from '../LeafletMap';
 import SlideToAccept from './SlideToAccept';
 import { acceptRide } from '../../api/trips';
+import { getTripMetrics } from '../../utils/geo';
 
 const COLORS = {
   dark: '#2d241e',
@@ -88,6 +89,8 @@ const IncomingRequestModal = ({
   }, [timeLeft, visible, onTimeout]);
 
   if (!trip) return null;
+
+  const metrics = getTripMetrics(trip);
 
   const pickup = trip.pickupLocation?.address || 'Pickup point';
   const dropoff = trip.dropoffLocation?.address || 'Drop-off point';
@@ -248,13 +251,13 @@ const IncomingRequestModal = ({
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
                 <Icon name="map-marker-distance" size={15} color={COLORS.muted} />
-                <Text style={styles.metaValue}>{trip.estimatedDistance || 'N/A'}</Text>
+                <Text style={styles.metaValue}>{metrics.distanceLabel}</Text>
                 <Text style={styles.metaLabel}>DISTANCE</Text>
               </View>
               <View style={styles.metaDivider} />
               <View style={styles.metaItem}>
                 <Icon name="clock-fast" size={15} color={COLORS.muted} />
-                <Text style={styles.metaValue}>{trip.estimatedTime || 'N/A'}</Text>
+                <Text style={styles.metaValue}>{metrics.etaLabel}</Text>
                 <Text style={styles.metaLabel}>EST. TIME</Text>
               </View>
               <View style={styles.metaDivider} />

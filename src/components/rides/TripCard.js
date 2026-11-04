@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import { getTripMetrics } from "../../utils/geo";
 
 // Industrial Palette System
 const COLORS = {
@@ -17,6 +18,7 @@ const COLORS = {
 
 const TripCard = ({ trip }) => {
     const navigation = useNavigation();
+    const metrics = getTripMetrics(trip);
 
     return (
         <TouchableOpacity
@@ -24,8 +26,12 @@ const TripCard = ({ trip }) => {
             activeOpacity={0.85}
             onPress={() =>
                 navigation.navigate("MapScreen", {
-                    pickupGeo: { lat: trip.pickupLocation.lat, lng: trip.pickupLocation.lng },
-                    dropoffGeo: { lat: trip.dropoffLocation.lat, lng: trip.dropoffLocation.lng },
+                    pickupGeo: trip?.pickupLocation
+                        ? { lat: trip.pickupLocation.lat, lng: trip.pickupLocation.lng }
+                        : undefined,
+                    dropoffGeo: trip?.dropoffLocation
+                        ? { lat: trip.dropoffLocation.lat, lng: trip.dropoffLocation.lng }
+                        : undefined,
                     trip,
                 })
             }
@@ -78,14 +84,14 @@ const TripCard = ({ trip }) => {
                 <View style={styles.metricGroup}>
                     <View style={styles.metric}>
                         <Icon name="schedule" size={14} color={COLORS.muted} />
-                        <Text style={styles.metricText}>{trip.estimatedTime.toUpperCase()}</Text>
+                        <Text style={styles.metricText}>{metrics.etaLabel.toUpperCase()}</Text>
                     </View>
                     <View style={styles.metric}>
                         <Icon name="route" size={14} color={COLORS.muted} />
-                        <Text style={styles.metricText}>{trip.estimatedDistance.toUpperCase()}</Text>
+                        <Text style={styles.metricText}>{metrics.distanceLabel.toUpperCase()}</Text>
                     </View>
                 </View>
-                <Text style={styles.refText}>REF: {trip.requesterName.toUpperCase()}</Text>
+                <Text style={styles.refText}>REF: {(trip.requesterName || 'N/A').toUpperCase()}</Text>
             </View>
         </TouchableOpacity>
     );

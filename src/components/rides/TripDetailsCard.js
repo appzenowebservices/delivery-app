@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FareBreakdown from './FareBreakdown';
+import { getTripMetrics } from '../../utils/geo';
 
 const COLORS = {
     dark: '#2d241e',      // Slate 900
@@ -17,6 +18,7 @@ const COLORS = {
 const TripDetailsCard = ({ trip, children }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [rotateAnim] = useState(new Animated.Value(0));
+    const metrics = getTripMetrics(trip);
 
     const toggleExpanded = () => {
         setIsExpanded(!isExpanded);
@@ -74,7 +76,7 @@ const TripDetailsCard = ({ trip, children }) => {
                                 {trip?.pickupLocation?.address || 'Locating...'}
                             </Text>
                         </View>
-                        <Text style={styles.timeTag}>{trip?.estimatedTime || '-- min'}</Text>
+                        <Text style={styles.timeTag}>{metrics.etaLabel}</Text>
                     </View>
 
                     {/* Visual Connector */}
@@ -89,7 +91,7 @@ const TripDetailsCard = ({ trip, children }) => {
                                 {trip?.dropoffLocation?.address || 'Locating...'}
                             </Text>
                         </View>
-                        <Text style={styles.distTag}>{trip?.estimatedDistance || '0 km'}</Text>
+                        <Text style={styles.distTag}>{metrics.distanceLabel}</Text>
                     </View>
                 </View>
 
