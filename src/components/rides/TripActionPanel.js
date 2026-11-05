@@ -34,8 +34,14 @@ const COLORS = {
   bg: '#fdfbf7',
 };
 
-// 500 meters for "Arrived" state
-const PROXIMITY_THRESHOLD_METERS = 500000;
+// 100 meters for "Arrived" / "Delivered" proximity
+const PROXIMITY_THRESHOLD_METERS = 100;
+
+const formatDistance = (meters) => {
+  if (!Number.isFinite(meters)) return null;
+  if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
+  return `${Math.round(meters)} m`;
+};
 
 const haversineDistance = (lat1, lon1, lat2, lon2) => {
   const toRad = (x) => (x * Math.PI) / 180;
@@ -211,21 +217,29 @@ const TripActionPanel = ({ trip, currentLocation, onTripStatusUpdate, onStopLoca
     switch (trip?.status) {
       case "assigned":
         return distToPickup <= PROXIMITY_THRESHOLD_METERS ? (
-          <SlideToAccept
-            key="confirm-arrival"
-            label="SLIDE TO CONFIRM ARRIVAL"
-            icon="map-marker-check"
-            accentColor={COLORS.accent}
-            loading={isActionLoading}
-            disabled={gpsState !== 'ready'}
-            onComplete={() => handleAction("mark_arrival")}
-          />
+          <View>
+            <Text style={styles.proximityHint}>WITHIN 100 M OF PICKUP</Text>
+            <SlideToAccept
+              key="confirm-arrival"
+              label="SLIDE TO CONFIRM ARRIVAL"
+              icon="map-marker-check"
+              accentColor={COLORS.accent}
+              loading={isActionLoading}
+              disabled={gpsState !== 'ready'}
+              onComplete={() => handleAction("mark_arrival")}
+            />
+          </View>
         ) : (
           <View style={styles.statusBox}>
             <Icon name="truck-fast" size={24} color={COLORS.muted} />
-            <Text style={styles.statusMsg}>EN ROUTE TO ORIGIN</Text>
+            <Text style={styles.statusMsg}>EN ROUTE TO PICKUP</Text>
             <Text style={styles.distanceLabel}>
-               {distToPickup > 1000 ? `${(distToPickup / 1000).toFixed(1)} KM` : `${Math.round(distToPickup)} M`} REMAINING
+              {formatDistance(distToPickup)
+                ? `${formatDistance(distToPickup)} AWAY FROM PICKUP`
+                : 'ACQUIRING GPS LOCK…'}
+            </Text>
+            <Text style={styles.thresholdHint}>
+              ARRIVAL BUTTON UNLOCKS WITHIN 100 M
             </Text>
           </View>
         );
@@ -245,21 +259,29 @@ const TripActionPanel = ({ trip, currentLocation, onTripStatusUpdate, onStopLoca
 
       case "picked_up":
         return distToDropoff <= PROXIMITY_THRESHOLD_METERS ? (
-          <SlideToAccept
-            key="finalize-delivery"
-            label="SLIDE TO FINALIZE DELIVERY"
-            icon="check-decagram"
-            accentColor={COLORS.accent}
-            loading={isActionLoading}
-            disabled={gpsState !== 'ready'}
-            onComplete={() => handleAction("mark_delivered")}
-          />
+          <View>
+            <Text style={styles.proximityHint}>WITHIN 100 M OF DROP-OFF</Text>
+            <SlideToAccept
+              key="finalize-delivery"
+              label="SLIDE TO FINALIZE DELIVERY"
+              icon="check-decagram"
+              accentColor={COLORS.accent}
+              loading={isActionLoading}
+              disabled={gpsState !== 'ready'}
+              onComplete={() => handleAction("mark_delivered")}
+            />
+          </View>
         ) : (
           <View style={styles.statusBox}>
             <Icon name="navigation-variant" size={24} color={COLORS.accent} />
-            <Text style={styles.statusMsg}>CARGO IN TRANSIT</Text>
+            <Text style={styles.statusMsg}>EN ROUTE TO DROP-OFF</Text>
             <Text style={styles.distanceLabel}>
-              {distToDropoff > 1000 ? `${(distToDropoff / 1000).toFixed(1)} KM` : `${Math.round(distToDropoff)} M`} TO DESTINATION
+              {formatDistance(distToDropoff)
+                ? `${formatDistance(distToDropoff)} AWAY FROM DROP-OFF`
+                : 'ACQUIRING GPS LOCK…'}
+            </Text>
+            <Text style={styles.thresholdHint}>
+              DELIVERY BUTTON UNLOCKS WITHIN 100 M
             </Text>
           </View>
         );
@@ -360,6 +382,22 @@ const styles = StyleSheet.create({
     color: COLORS.muted,
     fontWeight: '700',
     marginTop: 4,
+  },
+  thresholdHint: {
+    fontSize: 8,
+    color: COLORS.muted,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  proximityHint: {
+    fontSize: 8,
+    fontWeight: '900',
+    color: COLORS.accent,
+    letterSpacing: 1,
+    textAlign: 'center',
+    marginBottom: 6,
   },
   completedBadge: {
     flexDirection: 'row',
