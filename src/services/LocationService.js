@@ -4,6 +4,7 @@ import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { patchTrips } from '../api/trips';
 import socket from '../utils/socket';
+import { getLastLocation, setLastLocation } from './locationCache';
 
 let updateLocationInUI = null;
 
@@ -168,6 +169,7 @@ const buildPayload = (tripId, coords) => ({
 
 const sendForegroundTick = async (tripId) => {
   const coords = await getCurrentCoords();
+  setLastLocation(coords);
 
   if (updateLocationInUI) {
     updateLocationInUI(coords);
@@ -199,6 +201,11 @@ export const startForegroundLocation = async (tripId, setLocationCallback) => {
 
   updateLocationInUI = setLocationCallback || null;
   trackerState.activeTripId = tripId;
+
+  const cached = getLastLocation();
+  if (cached && updateLocationInUI) {
+    updateLocationInUI(cached);
+  }
 
   if (foregroundTimer) {
     clearInterval(foregroundTimer);
@@ -262,6 +269,7 @@ const backgroundLocationTask = async (taskDataArguments) => {
 
     try {
       const coords = await getCurrentCoords();
+      setLastLocation(coords);
 
       if (updateLocationInUI) {
         updateLocationInUI(coords);
@@ -310,6 +318,11 @@ export const startBackgroundLocation = async (tripId, setLocationCallback) => {
 
   updateLocationInUI = setLocationCallback || null;
   trackerState.activeTripId = tripId;
+
+  const cached = getLastLocation();
+  if (cached && updateLocationInUI) {
+    updateLocationInUI(cached);
+  }
 
   if (!BackgroundService.isRunning()) {
     await loadQueue();

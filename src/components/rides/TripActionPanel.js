@@ -9,6 +9,8 @@ import {
   StyleSheet,
   Vibration,
   Linking,
+  PermissionsAndroid,
+  Platform,
 } from "react-native";
 import Geolocation from '@react-native-community/geolocation';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -18,6 +20,11 @@ import {
   markedPickupedUp,
 } from "../../api/trips";
 import SlideToAccept from "./SlideToAccept";
+import {
+  getLastLocation,
+  setLastLocation,
+  subscribeLocation,
+} from "../../services/locationCache";
 
 const COLORS = {
   dark: '#2d241e',
@@ -43,36 +50,94 @@ const haversineDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const TripActionPanel = ({ trip, currentLocation, onTripStatusUpdate, onStopLocationTracking }) => {
-  const [internalLocation, setInternalLocation] = useState(currentLocation || null);
-  const [gpsState, setGpsState] = useState(currentLocation ? 'ready' : 'locating');
+  const initialLocation = getLastLocation() || currentLocation || null;
+  const [internalLocation, setInternalLocation] = useState(initialLocation);
+  const [gpsState, setGpsState] = useState(initialLocation ? 'ready' : 'locating');
   const [inlineError, setInlineError] = useState('');
   const [isActionLoading, setIsActionLoading] = useState(false);
   const watchId = useRef(null);
 
   useEffect(() => {
-    const handlePosition = (pos) => {
-      setInternalLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+    let mounted = true;
+    let retryTimer = null;
+    let attempts = 0;
+
+    const applyPosition = (pos) => {
+      const coords = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+      };
+
+      setLastLocation(coords);
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      if (!mounted) return;
+
+      setInternalLocation(coords);
       setGpsState('ready');
       setInlineError('');
     };
 
     const handleError = (err) => {
       console.log('Location Error:', err);
+      if (!mounted) return;
       setGpsState((prev) => (prev === 'ready' ? prev : err?.code === 1 ? 'denied' : 'weak'));
     };
 
-    Geolocation.getCurrentPosition(handlePosition, handleError, {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 1000,
+    const unsubscribe = subscribeLocation((coords) => {
+      if (!mounted) return;
+      setInternalLocation(coords);
+      setGpsState('ready');
+      setInlineError('');
     });
 
-    watchId.current = Geolocation.watchPosition(handlePosition, handleError, {
-      enableHighAccuracy: true,
-      distanceFilter: 10,
-    });
+    const ensurePermission = async () => {
+      if (Platform.OS !== 'android') return true;
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    };
 
-    return () => watchId.current !== null && Geolocation.clearWatch(watchId.current);
+    const locate = async () => {
+      const granted = await ensurePermission();
+      if (!mounted) return;
+
+      if (!granted) {
+        setGpsState('denied');
+        return;
+      }
+
+      if (watchId.current === null) {
+        watchId.current = Geolocation.watchPosition(applyPosition, handleError, {
+          enableHighAccuracy: true,
+          distanceFilter: 10,
+        });
+      }
+
+      Geolocation.getCurrentPosition(applyPosition, handleError, {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 5000,
+      });
+
+      attempts += 1;
+      if (!getLastLocation() && attempts < 6) {
+        retryTimer = setTimeout(locate, 5000);
+      }
+    };
+
+    locate();
+
+    return () => {
+      mounted = false;
+      if (retryTimer) clearTimeout(retryTimer);
+      unsubscribe();
+      if (watchId.current !== null) Geolocation.clearWatch(watchId.current);
+    };
   }, []);
 
   useEffect(() => {

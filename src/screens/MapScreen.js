@@ -16,6 +16,7 @@ import LeafletMapComponent from '../components/LeafletMap';
 import TripDetailsCard from '../components/rides/TripDetailsCard';
 import TripActionPanel from '../components/rides/TripActionPanel';
 import { startForegroundLocation, stopForegroundLocation } from '../services/LocationService';
+import { getLastLocation } from '../services/locationCache';
 
 const { width, height } = Dimensions.get('window');
 
@@ -43,7 +44,7 @@ const MapScreen = () => {
     }, [trip]);
 
     const [mapExpanded, setMapExpanded] = useState(false);
-    const [riderLocation, setRiderLocation] = useState(null);
+    const [riderLocation, setRiderLocation] = useState(() => getLastLocation());
     const [recenterSignal, setRecenterSignal] = useState(0);
 
     // Animations
